@@ -1,0 +1,3 @@
+C:/Projects/Emberwood/build/CMakeFiles/Emberwood.dir
+C:/Projects/Emberwood/build/CMakeFiles/ALL_BUILD.dir
+C:/Projects/Emberwood/build/CMakeFiles/ZERO_CHECK.dir
