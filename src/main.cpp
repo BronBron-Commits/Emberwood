@@ -9,7 +9,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("Emberwood", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+    // Get display size for fullscreen
+    SDL_DisplayMode displayMode;
+    if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
+        std::cerr << "SDL_GetCurrentDisplayMode Error: " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        return 1;
+    }
+    int windowW = displayMode.w;
+    int windowH = displayMode.h;
+    SDL_Window* window = SDL_CreateWindow("Emberwood", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowW, windowH, SDL_WINDOW_FULLSCREEN);
     if (!window) {
         std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
         SDL_Quit();
@@ -48,7 +57,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Generate a wizard sprite: purple cloak, purple Santa hat, and face
-    SDL_Surface* spriteSurface = SDL_CreateRGBSurface(0, 40, 40, 32,
+    // Bigger, more detailed avatar with limbs
+    const int avatarW = 120;
+    const int avatarH = 160;
+    SDL_Surface* spriteSurface = SDL_CreateRGBSurface(0, avatarW, avatarH, 32,
         0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
     if (!spriteSurface) {
         std::cerr << "Failed to create sprite surface: " << SDL_GetError() << std::endl;
@@ -56,30 +68,73 @@ int main(int argc, char* argv[]) {
         // Fill background with transparent (black)
         SDL_FillRect(spriteSurface, nullptr, SDL_MapRGBA(spriteSurface->format, 0, 0, 0, 0));
 
-        // Draw purple cloak (bottom half)
-        SDL_Rect cloak = { 8, 20, 24, 16 };
-        SDL_FillRect(spriteSurface, &cloak, SDL_MapRGB(spriteSurface->format, 128, 0, 128));
+        // Draw body (cloak)
+        SDL_Rect body = { 35, 60, 50, 80 };
+        SDL_FillRect(spriteSurface, &body, SDL_MapRGB(spriteSurface->format, 128, 0, 128));
 
-        // Draw face (peach color)
-        SDL_Rect face = { 14, 12, 12, 8 };
-        SDL_FillRect(spriteSurface, &face, SDL_MapRGB(spriteSurface->format, 255, 220, 177));
+        // Draw head (peach color)
+        SDL_Rect head = { 40, 30, 40, 30 };
+        SDL_FillRect(spriteSurface, &head, SDL_MapRGB(spriteSurface->format, 255, 220, 177));
+
+        // Draw eyes (black)
+        SDL_Rect leftEye = { 52, 40, 4, 4 };
+        SDL_Rect rightEye = { 64, 40, 4, 4 };
+        SDL_FillRect(spriteSurface, &leftEye, SDL_MapRGB(spriteSurface->format, 0, 0, 0));
+        SDL_FillRect(spriteSurface, &rightEye, SDL_MapRGB(spriteSurface->format, 0, 0, 0));
+
+        // Draw mouth (smile, dark red)
+        SDL_Rect mouth = { 56, 52, 8, 3 };
+        SDL_FillRect(spriteSurface, &mouth, SDL_MapRGB(spriteSurface->format, 120, 40, 40));
+
+        // Draw white beard (rectangle + triangle)
+        SDL_Rect beardRect = { 48, 55, 24, 12 };
+        SDL_FillRect(spriteSurface, &beardRect, SDL_MapRGB(spriteSurface->format, 255, 255, 255));
+        // Triangle part of beard (pointed)
+        for (int y = 0; y < 12; ++y) {
+            int xStart = 48 + y;
+            int xEnd = 71 - y;
+            for (int x = xStart; x <= xEnd; ++x) {
+                if (x >= 0 && x < avatarW) {
+                    Uint32* pixels = (Uint32*)spriteSurface->pixels;
+                    pixels[(67 + y) * avatarW + x] = SDL_MapRGB(spriteSurface->format, 255, 255, 255);
+                }
+            }
+        }
+
+        // Draw left arm
+        SDL_Rect leftArm = { 15, 70, 20, 60 };
+        SDL_FillRect(spriteSurface, &leftArm, SDL_MapRGB(spriteSurface->format, 128, 0, 128));
+
+        // Draw right arm
+        SDL_Rect rightArm = { 85, 70, 20, 60 };
+        SDL_FillRect(spriteSurface, &rightArm, SDL_MapRGB(spriteSurface->format, 128, 0, 128));
+
+        // Draw left leg
+        SDL_Rect leftLeg = { 45, 140, 10, 20 };
+        SDL_FillRect(spriteSurface, &leftLeg, SDL_MapRGB(spriteSurface->format, 60, 0, 60));
+
+        // Draw right leg
+        SDL_Rect rightLeg = { 65, 140, 10, 20 };
+        SDL_FillRect(spriteSurface, &rightLeg, SDL_MapRGB(spriteSurface->format, 60, 0, 60));
 
         // Draw purple Santa hat base (rectangle above face)
-        SDL_Rect hatBase = { 14, 8, 12, 6 };
+        SDL_Rect hatBase = { 50, 15, 20, 15 };
         SDL_FillRect(spriteSurface, &hatBase, SDL_MapRGB(spriteSurface->format, 128, 0, 128));
 
         // Draw purple Santa hat tip (triangle)
-        for (int y = 2; y < 8; ++y) {
-            int xStart = 20 - (y - 2);
-            int xEnd = 20 + (y - 2);
+        for (int y = 5; y < 15; ++y) {
+            int xStart = 60 - (y - 5);
+            int xEnd = 60 + (y - 5);
             for (int x = xStart; x <= xEnd; ++x) {
-                Uint32* pixels = (Uint32*)spriteSurface->pixels;
-                pixels[y * spriteSurface->w + x] = SDL_MapRGB(spriteSurface->format, 128, 0, 128);
+                if (x >= 0 && x < avatarW) {
+                    Uint32* pixels = (Uint32*)spriteSurface->pixels;
+                    pixels[y * avatarW + x] = SDL_MapRGB(spriteSurface->format, 128, 0, 128);
+                }
             }
         }
 
         // Draw white pom-pom at tip
-        SDL_Rect pom = { 19, 0, 3, 3 };
+        SDL_Rect pom = { 58, 0, 5, 5 };
         SDL_FillRect(spriteSurface, &pom, SDL_MapRGB(spriteSurface->format, 255, 255, 255));
     }
     SDL_Texture* spriteTexture = nullptr;
@@ -103,8 +158,7 @@ int main(int argc, char* argv[]) {
     // Camera setup
     int camX = 0;
     int camY = 0;
-    const int windowW = 800;
-    const int windowH = 600;
+    // windowW and windowH are now set from displayMode above
     const int margin = 100; // Margin from edge before camera moves
 
     bool running = true;
@@ -140,8 +194,8 @@ int main(int argc, char* argv[]) {
         }
 
         // Camera follows player if near edge
-        int spriteW = static_cast<int>(40 * zoom);
-        int spriteH = static_cast<int>(40 * zoom);
+        int spriteW = static_cast<int>(avatarW * zoom);
+        int spriteH = static_cast<int>(avatarH * zoom);
         // Left
         if (charX - camX < margin) {
             camX = charX - margin;
