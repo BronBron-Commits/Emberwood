@@ -2,6 +2,13 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <cmath>
+#include <vector>
+// Fireball struct
+struct Fireball {
+	float x, y;
+	float vx, vy;
+	int life;
+};
 
 int main(int argc, char* argv[]) {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -240,6 +247,7 @@ int main(int argc, char* argv[]) {
 	int walkFrame = 0;
 	int walkCounter = 0;
 	const int walkFrameDelay = 10;
+	std::vector<Fireball> fireballs;
 
 	bool running = true;
 	SDL_Event event;
@@ -266,6 +274,18 @@ int main(int argc, char* argv[]) {
 						facing = 0;
 						break;
 				}
+				if (event.key.keysym.sym == SDLK_SPACE) {
+					// Shoot fireball
+					float fx = charX + avatarW / 2;
+					float fy = charY + avatarH / 2;
+					float speed = 16.0f;
+					float vx = 0, vy = 0;
+					if (facing == 0) { vx = speed; }
+					else if (facing == 1) { vx = -speed; }
+					else if (facing == 2) { vy = -speed; }
+					else if (facing == 3) { vy = speed; }
+					fireballs.push_back({fx, fy, vx, vy, 60});
+				}
 			} else if (event.type == SDL_MOUSEWHEEL) {
 				if (event.wheel.y > 0) {
 					zoom += zoomStep;
@@ -276,22 +296,20 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
-		// Animation: if moving, advance frame
-		bool isMoving = false;
-		const Uint8* keystate = SDL_GetKeyboardState(NULL);
-		if (keystate[SDL_SCANCODE_W] || keystate[SDL_SCANCODE_A] || keystate[SDL_SCANCODE_S] || keystate[SDL_SCANCODE_D]) {
-			isMoving = true;
-		}
-		if (isMoving) {
-			walkCounter++;
-			if (walkCounter >= walkFrameDelay) {
-				walkCounter = 0;
-				walkFrame = 1 - walkFrame;
-			}
-		} else {
-			walkFrame = 0;
+		// Animation: always advance frame (persistent animation)
+		walkCounter++;
+		if (walkCounter >= walkFrameDelay) {
 			walkCounter = 0;
+			walkFrame = 1 - walkFrame;
 		}
+		// Update fireballs
+		for (auto& f : fireballs) {
+			f.x += f.vx;
+			f.y += f.vy;
+			f.life--;
+		}
+		fireballs.erase(std::remove_if(fireballs.begin(), fireballs.end(), [](const Fireball& f) { return f.life <= 0; }), fireballs.end());
+
 		// Camera follows player if near edge
 		int spriteW = static_cast<int>(avatarW * zoom);
 		int spriteH = static_cast<int>(avatarH * zoom);
@@ -317,6 +335,22 @@ int main(int argc, char* argv[]) {
 						static_cast<int>(tileSize * zoom)
 					};
 					SDL_RenderCopy(renderer, marbleTexture, nullptr, &dest);
+				}
+			}
+		}
+		// Render fireballs
+		for (const auto& f : fireballs) {
+			SDL_SetRenderDrawColor(renderer, 180, 0, 255, 255); // purple
+			for (int r = 10; r > 0; --r) {
+				for (int dy = -r; dy <= r; ++dy) {
+					for (int dx = -r; dx <= r; ++dx) {
+						if (dx*dx + dy*dy <= r*r) {
+							int px = static_cast<int>((f.x - camX) * zoom) + dx;
+							int py = static_cast<int>((f.y - camY) * zoom) + dy;
+							if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+								SDL_RenderDrawPoint(renderer, px, py);
+						}
+					}
 				}
 			}
 		}
