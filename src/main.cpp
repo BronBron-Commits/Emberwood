@@ -620,44 +620,73 @@ int main(int argc, char* argv[]) {
 		SDL_SetRenderDrawColor(renderer, 34, 139, 34, 255); // solid green (forest green)
 		SDL_RenderFillRect(renderer, &groundRect);
 
-		// --- Bigger Campfire rendering ---
-		// Place campfire near map center
-		int campfireX = worldW / 2 - 48;
-		int campfireY = worldH / 2 + 120;
-		SDL_Rect campfireRect = cameraTransform(campfireX, campfireY, 96, 48);
-		// Draw campfire base (logs)
-		SDL_SetRenderDrawColor(renderer, 110, 70, 30, 255);
-		for (int i = 0; i < 4; ++i) {
-			int logY = campfireRect.y + 32 + i * 6;
-			SDL_Rect logRect = {campfireRect.x + 8 + i * 16, logY, 80 - i * 16, 12};
-			SDL_RenderFillRect(renderer, &logRect);
-		}
-		// Animate fire (flicker)
-		float fireTime = SDL_GetTicks() / 300.0f;
-		int flameX = campfireRect.x + 48 + (int)(12 * std::sin(fireTime));
-		int flameY = campfireRect.y + 16 + (int)(4 * std::cos(fireTime * 1.7f));
-		// Draw outer flame (orange)
-		SDL_SetRenderDrawColor(renderer, 255, 140, 40, 220);
-		for (int r = 28; r > 14; r -= 3) {
-			for (int dy = -r; dy <= r; ++dy) {
-				for (int dx = -r; dx <= r; ++dx) {
+		// --- Performance-Optimized Campfire rendering ---
+		int campfireX = worldW / 2 - 60;
+		int campfireY = worldH / 2 + 100;
+		SDL_Rect campfireRect = cameraTransform(campfireX, campfireY, 120, 60);
+		// Draw glowing aura (fewer, larger steps)
+		for (int r = 80; r > 60; r -= 10) {
+			SDL_SetRenderDrawColor(renderer, 255, 200, 80, 24);
+			for (int dy = -r; dy <= r; dy += 2) {
+				for (int dx = -r; dx <= r; dx += 2) {
 					if (dx*dx + dy*dy <= r*r) {
-						int px = flameX + dx;
-						int py = flameY + dy;
-						SDL_RenderDrawPoint(renderer, px, py);
+						int px = campfireRect.x + 60 + dx;
+						int py = campfireRect.y + 30 + dy;
+						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+							SDL_RenderDrawPoint(renderer, px, py);
 					}
 				}
 			}
 		}
-		// Draw inner flame (yellow)
-		SDL_SetRenderDrawColor(renderer, 255, 220, 80, 240);
-		for (int r = 14; r > 5; r -= 3) {
+		// Draw campfire base (fewer logs, smaller)
+		SDL_SetRenderDrawColor(renderer, 110, 70, 30, 255);
+		for (int i = 0; i < 4; ++i) {
+			int logY = campfireRect.y + 32 + i * 5;
+			SDL_Rect logRect = {campfireRect.x + 12 + i * 16, logY, 80 - i * 16, 10};
+			SDL_RenderFillRect(renderer, &logRect);
+		}
+		// Animate fire (smaller, fewer layers)
+		float fireTime = SDL_GetTicks() / 300.0f;
+		int flameX = campfireRect.x + 60 + (int)(10 * std::sin(fireTime));
+		int flameY = campfireRect.y + 20 + (int)(5 * std::cos(fireTime * 1.7f));
+		// Draw outer flame (orange, fewer radii)
+		SDL_SetRenderDrawColor(renderer, 255, 140, 40, 200);
+		for (int r = 24; r > 12; r -= 4) {
+			for (int dy = -r; dy <= r; dy += 2) {
+				for (int dx = -r; dx <= r; dx += 2) {
+					if (dx*dx + dy*dy <= r*r) {
+						int px = flameX + dx;
+						int py = flameY + dy;
+						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+							SDL_RenderDrawPoint(renderer, px, py);
+					}
+				}
+			}
+		}
+		// Draw inner flame (yellow, fewer radii)
+		SDL_SetRenderDrawColor(renderer, 255, 220, 80, 220);
+		for (int r = 12; r > 4; r -= 4) {
+			for (int dy = -r; dy <= r; dy += 2) {
+				for (int dx = -r; dx <= r; dx += 2) {
+					if (dx*dx + dy*dy <= r*r) {
+						int px = flameX + dx;
+						int py = flameY + dy;
+						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+							SDL_RenderDrawPoint(renderer, px, py);
+					}
+				}
+			}
+		}
+		// Draw core flame (white, smallest)
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		for (int r = 4; r > 1; r -= 2) {
 			for (int dy = -r; dy <= r; ++dy) {
 				for (int dx = -r; dx <= r; ++dx) {
 					if (dx*dx + dy*dy <= r*r) {
 						int px = flameX + dx;
 						int py = flameY + dy;
-						SDL_RenderDrawPoint(renderer, px, py);
+						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+							SDL_RenderDrawPoint(renderer, px, py);
 					}
 				}
 			}
