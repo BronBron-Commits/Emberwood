@@ -634,8 +634,9 @@ int main(int argc, char* argv[]) {
 			float radius = f.size * 18.0f;
 			if (!f.exploding) {
 				SDL_Rect fbRect = cameraTransform(f.x - radius, f.y - radius, radius * 2, radius * 2);
-				for (int y = 0; y < fbRect.h; ++y) {
-					for (int x = 0; x < fbRect.w; ++x) {
+				// Optimize: skip every other pixel for perf
+				for (int y = 0; y < fbRect.h; y += 2) {
+					for (int x = 0; x < fbRect.w; x += 2) {
 						int px = fbRect.x + x;
 						int py = fbRect.y + y;
 						if (px < 0 || px >= windowW || py < 0 || py >= windowH) continue;
@@ -660,8 +661,9 @@ int main(int argc, char* argv[]) {
 				float minExplosion = radius * 1.1f;
 				float explosionRadius = minExplosion + (maxExplosion - minExplosion) * explosionProgress;
 				SDL_Rect expRect = cameraTransform(f.x - explosionRadius, f.y - explosionRadius, explosionRadius * 2, explosionRadius * 2);
-				for (int y = 0; y < expRect.h; ++y) {
-					for (int x = 0; x < expRect.w; ++x) {
+				// Optimize: skip every other pixel for perf
+				for (int y = 0; y < expRect.h; y += 2) {
+					for (int x = 0; x < expRect.w; x += 2) {
 						int px = expRect.x + x;
 						int py = expRect.y + y;
 						if (px < 0 || px >= windowW || py < 0 || py >= windowH) continue;
@@ -687,10 +689,13 @@ int main(int argc, char* argv[]) {
 		int auraParticleCount = 32;
 		float auraRadius = (avatarW + avatarH) / 4.0f + 10.0f;
 		float auraTime = SDL_GetTicks() / 1000.0f;
+		// Center the aura around the player's waist (about 70% down the sprite)
+		float waistY = charY + avatarH * 0.7f;
+		float centerX = charX + avatarW / 2;
 		for (int i = 0; i < auraParticleCount; ++i) {
 			float angle = (2.0f * M_PI * i) / auraParticleCount + auraTime * 0.8f;
-			float px = charX + avatarW / 2 + std::cos(angle) * auraRadius;
-			float py = charY + avatarH / 2 + std::sin(angle) * auraRadius;
+			float px = centerX + std::cos(angle) * auraRadius;
+			float py = waistY + std::sin(angle) * auraRadius;
 			SDL_Rect auraRect = cameraTransform(px - 3, py - 3, 6, 6);
 			// Animate color for a magical effect
 			Uint8 r = 120 + 80 * std::sin(angle + auraTime);
