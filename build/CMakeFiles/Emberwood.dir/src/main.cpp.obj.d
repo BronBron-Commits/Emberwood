@@ -353,5 +353,6 @@ CMakeFiles/Emberwood.dir/src/main.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_vector.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_bvector.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/vector.tcc \
+ C:\Projects\Emberwood\src\CharacterModule.h \
  C:/msys64/mingw64/include/c++/15.2.0/sstream \
  C:/msys64/mingw64/include/c++/15.2.0/bits/sstream.tcc

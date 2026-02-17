@@ -128,6 +128,30 @@ Emberwood/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Emberwood.dir\build.make CMakeFiles/Emberwood.dir/build
 .PHONY : Emberwood/fast
 
+src/CharacterModule.obj: src/CharacterModule.cpp.obj
+.PHONY : src/CharacterModule.obj
+
+# target to build an object file
+src/CharacterModule.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Emberwood.dir\build.make CMakeFiles/Emberwood.dir/src/CharacterModule.cpp.obj
+.PHONY : src/CharacterModule.cpp.obj
+
+src/CharacterModule.i: src/CharacterModule.cpp.i
+.PHONY : src/CharacterModule.i
+
+# target to preprocess a source file
+src/CharacterModule.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Emberwood.dir\build.make CMakeFiles/Emberwood.dir/src/CharacterModule.cpp.i
+.PHONY : src/CharacterModule.cpp.i
+
+src/CharacterModule.s: src/CharacterModule.cpp.s
+.PHONY : src/CharacterModule.s
+
+# target to generate assembly for a file
+src/CharacterModule.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Emberwood.dir\build.make CMakeFiles/Emberwood.dir/src/CharacterModule.cpp.s
+.PHONY : src/CharacterModule.cpp.s
+
 src/engine/Renderer.obj: src/engine/Renderer.cpp.obj
 .PHONY : src/engine/Renderer.obj
 
@@ -233,6 +257,9 @@ help:
 	@echo ... edit_cache
 	@echo ... rebuild_cache
 	@echo ... Emberwood
+	@echo ... src/CharacterModule.obj
+	@echo ... src/CharacterModule.i
+	@echo ... src/CharacterModule.s
 	@echo ... src/engine/Renderer.obj
 	@echo ... src/engine/Renderer.i
 	@echo ... src/engine/Renderer.s

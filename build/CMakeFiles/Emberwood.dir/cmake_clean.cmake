@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/Emberwood.dir/src/CharacterModule.cpp.obj"
+  "CMakeFiles/Emberwood.dir/src/CharacterModule.cpp.obj.d"
   "CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj"
   "CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj.d"
   "CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj"

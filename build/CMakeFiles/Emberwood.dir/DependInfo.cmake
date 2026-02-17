@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "C:/Projects/Emberwood/src/CharacterModule.cpp" "CMakeFiles/Emberwood.dir/src/CharacterModule.cpp.obj" "gcc" "CMakeFiles/Emberwood.dir/src/CharacterModule.cpp.obj.d"
   "C:/Projects/Emberwood/src/engine/Renderer.cpp" "CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj" "gcc" "CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj.d"
   "C:/Projects/Emberwood/src/engine/TextureManager.cpp" "CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj" "gcc" "CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj.d"
   "C:/Projects/Emberwood/src/entities/Tree.cpp" "CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj" "gcc" "CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj.d"

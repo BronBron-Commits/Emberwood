@@ -17,6 +17,7 @@ add_executable(Emberwood
     src/engine/Renderer.cpp
     src/engine/TextureManager.cpp
     src/entities/Tree.cpp
+    src/CharacterModule.cpp
 )
 
 target_link_libraries(Emberwood PRIVATE

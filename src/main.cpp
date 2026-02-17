@@ -9,6 +9,9 @@
 #endif
 #include <vector>
 
+
+#include "CharacterModule.h"
+
 #include <sstream>
 
 // Fallback for std::to_string on older compilers
@@ -360,16 +363,18 @@ int main(int argc, char* argv[]) {
 	regenerateSprites();
 
 
-	// Character state
-	float charX = windowW / 2.0f;
-	float charY = windowH / 2.0f;
-	float charVX = 0.0f, charVY = 0.0f;
-	const float accel = 2.2f; // increased acceleration per key press
-	const float maxSpeed = 15.0f; // increased max speed
-	const float friction = 0.92f; // lower = more slippery
-	// Removed zoom variables
+
+	// Use a vector of Character objects
+	std::vector<Character> characters;
+	characters.push_back(createNewCharacter("Wizard", windowW / 2.0f, windowH / 2.0f, {128, 0, 128}, {200, 180, 60}));
+	// For now, the first character is the player
+	int playerIndex = 0;
+
+	const float accel = 2.2f;
+	const float maxSpeed = 15.0f;
+	const float friction = 0.92f;
 	const int margin = 100;
-	int facing = 0; // 0=right, 1=left, 2=up, 3=down
+	int facing = 0;
 	int walkFrame = 0;
 	int walkCounter = 0;
 	const int walkFrameDelay = 10;
@@ -403,6 +408,8 @@ int main(int argc, char* argv[]) {
 				SDL_FreeSurface(fpsSurface);
 			}
 		}
+
+		// --- Input and update for all characters ---
 		bool up = false, down = false, left = false, right = false;
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
@@ -441,9 +448,10 @@ int main(int argc, char* argv[]) {
 				}
 				if (pressed && event.key.keysym.sym == SDLK_SPACE) {
 					// Shoot fireball if enough energy
+					Character& player = characters[playerIndex];
 					if (playerEnergy >= fireballEnergyCost) {
-						float fx = charX + avatarW / 2;
-						float fy = charY + avatarH / 2;
+						float fx = player.x + avatarW / 2;
+						float fy = player.y + avatarH / 2;
 						float fireballSpeed = 16.0f;
 						float vx = 0, vy = 0;
 						if (facing == 0) { vx = fireballSpeed; }
@@ -459,30 +467,30 @@ int main(int argc, char* argv[]) {
 					}
 				}
 			}
-			// Removed mouse wheel zoom event
 		}
-		// Movement input (ice/inertia)
+		// Movement input (ice/inertia) for player character
 		const Uint8* keystate = SDL_GetKeyboardState(NULL);
 		up = keystate[SDL_SCANCODE_W];
 		down = keystate[SDL_SCANCODE_S];
 		left = keystate[SDL_SCANCODE_A];
 		right = keystate[SDL_SCANCODE_D];
-		if (up)    { charVY -= accel; facing = 2; }
-		if (down)  { charVY += accel; facing = 3; }
-		if (left)  { charVX -= accel; facing = 1; }
-		if (right) { charVX += accel; facing = 0; }
+		Character& player = characters[playerIndex];
+		if (up)    { player.vy -= accel; facing = 2; }
+		if (down)  { player.vy += accel; facing = 3; }
+		if (left)  { player.vx -= accel; facing = 1; }
+		if (right) { player.vx += accel; facing = 0; }
 		// Clamp velocity
-		float speedVal = std::sqrt(charVX * charVX + charVY * charVY);
+		float speedVal = std::sqrt(player.vx * player.vx + player.vy * player.vy);
 		if (speedVal > maxSpeed) {
-			charVX = (charVX / speedVal) * maxSpeed;
-			charVY = (charVY / speedVal) * maxSpeed;
+			player.vx = (player.vx / speedVal) * maxSpeed;
+			player.vy = (player.vy / speedVal) * maxSpeed;
 		}
 		// Apply velocity
-		charX += charVX;
-		charY += charVY;
+		player.x += player.vx;
+		player.y += player.vy;
 		// Apply friction
-		charVX *= friction;
-		charVY *= friction;
+		player.vx *= friction;
+		player.vy *= friction;
 
 		// Animation: always advance frame (persistent animation)
 		walkCounter++;
@@ -492,16 +500,16 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Emit dust trail if moving
-		float moveSpeed = std::sqrt(charVX * charVX + charVY * charVY);
+		float moveSpeed = std::sqrt(player.vx * player.vx + player.vy * player.vy);
 		if (moveSpeed > 1.0f && dustEmitCooldown <= 0) {
 			// Emit 4-6 much larger particles per frame from feet
 			int numParticles = 4 + (rand() % 3);
 			for (int i = 0; i < numParticles; ++i) {
-				float footX = charX + avatarW / 2 + ((rand() % 41) - 20) * 0.2f;
-				float footY = charY + avatarH - 18 + ((rand() % 21) - 10) * 0.2f;
+				float footX = player.x + avatarW / 2 + ((rand() % 41) - 20) * 0.2f;
+				float footY = player.y + avatarH - 18 + ((rand() % 21) - 10) * 0.2f;
 				float angle = ((rand() % 360) / 180.0f) * M_PI;
 				float speed = 1.2f + (rand() % 10) * 0.15f;
-				float vx = std::cos(angle) * speed * 0.7f + charVX * 0.15f;
+				float vx = std::cos(angle) * speed * 0.7f + player.vx * 0.15f;
 				float vy = std::abs(std::sin(angle)) * speed * 0.7f + 0.7f;
 				int life = 22 + (rand() % 10);
 				dustParticles.push_back({footX, footY, vx, vy, life});
@@ -544,27 +552,27 @@ int main(int argc, char* argv[]) {
 		int spriteH = avatarH;
 
 		// Clamp player to world bounds and prevent entry into unwalkable area
-		if (charX < 0) charX = 0;
-		if (charY < 0) charY = 0;
-		if (charX > worldW - avatarW) charX = worldW - avatarW;
-		if (charY > worldH - avatarH) charY = worldH - avatarH;
+		if (player.x < 0) player.x = 0;
+		if (player.y < 0) player.y = 0;
+		if (player.x > worldW - avatarW) player.x = worldW - avatarW;
+		if (player.y > worldH - avatarH) player.y = worldH - avatarH;
 		// Prevent entry into unwalkable area (simple AABB check)
-		float px1 = charX, py1 = charY, px2 = charX + avatarW, py2 = charY + avatarH;
+		float px1 = player.x, py1 = player.y, px2 = player.x + avatarW, py2 = player.y + avatarH;
 		float ux1 = unwalkableX, uy1 = unwalkableY, ux2 = unwalkableX + unwalkableW, uy2 = unwalkableY + unwalkableH;
 		if (px2 > ux1 && px1 < ux2 && py2 > uy1 && py1 < uy2) {
 			// Push player out to the left or right, whichever is closer
 			float leftDist = std::abs(px2 - ux1);
 			float rightDist = std::abs(px1 - ux2);
 			if (leftDist < rightDist) {
-				charX = ux1 - avatarW;
+				player.x = ux1 - avatarW;
 			} else {
-				charX = ux2;
+				player.x = ux2;
 			}
 		}
 
 		// Chase camera: smoothly follow player center
-		float targetCamX = charX + avatarW / 2 - windowW / 2;
-		float targetCamY = charY + avatarH / 2 - windowH / 2;
+		float targetCamX = player.x + avatarW / 2 - windowW / 2;
+		float targetCamY = player.y + avatarH / 2 - windowH / 2;
 		// Clamp to world bounds
 		if (targetCamX < 0) targetCamX = 0;
 		if (targetCamX > worldW - windowW) targetCamX = worldW - windowW;
@@ -720,8 +728,8 @@ int main(int argc, char* argv[]) {
 		float auraRadius = (avatarW + avatarH) / 4.0f + 10.0f;
 		float auraTime = SDL_GetTicks() / 1000.0f;
 		// Center the aura around the player's waist (about 70% down the sprite)
-		float waistY = charY + avatarH * 0.7f;
-		float centerX = charX + avatarW / 2;
+		float waistY = player.y + avatarH * 0.7f;
+		float centerX = player.x + avatarW / 2;
 		for (int i = 0; i < auraParticleCount; ++i) {
 			float angle = (2.0f * M_PI * i) / auraParticleCount + auraTime * 0.8f;
 			float px = centerX + std::cos(angle) * auraRadius;
@@ -758,11 +766,11 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Render character shadow (ellipse)
-		SDL_Rect destRect = cameraTransform(charX, charY, avatarW, avatarH);
+		SDL_Rect destRect = cameraTransform(player.x, player.y, avatarW, avatarH);
 		int shadowW = avatarW * 0.7;
 		int shadowH = avatarH * 0.22;
-		int shadowX = charX + (avatarW - shadowW) / 2;
-		int shadowY = charY + avatarH - shadowH / 2;
+		int shadowX = player.x + (avatarW - shadowW) / 2;
+		int shadowY = player.y + avatarH - shadowH / 2;
 		SDL_Rect shadowRect = cameraTransform(shadowX, shadowY, shadowW, shadowH);
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 90); // semi-transparent black
 		// Draw ellipse for shadow
@@ -820,8 +828,8 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Draw player position on minimap
-		int playerMiniX = miniMapX + (int)((charX + avatarW / 2) * scaleX);
-		int playerMiniY = miniMapY + (int)((charY + avatarH / 2) * scaleY);
+		int playerMiniX = miniMapX + (int)((player.x + avatarW / 2) * scaleX);
+		int playerMiniY = miniMapY + (int)((player.y + avatarH / 2) * scaleY);
 		SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
 		SDL_Rect playerDot = { playerMiniX - 3, playerMiniY - 3, 7, 7 };
 		SDL_RenderFillRect(renderer, &playerDot);
