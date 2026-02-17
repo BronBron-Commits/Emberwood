@@ -49,6 +49,7 @@ struct Fireball {
 
 
 int main(int argc, char* argv[]) {
+	bool showGrid = true;
 	// --- FPS display state ---
 	TTF_Init();
 	TTF_Font* fpsFont = TTF_OpenFont("assets/fonts/DejaVuSans.ttf", 18);
@@ -422,6 +423,9 @@ int main(int argc, char* argv[]) {
 			} else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
 				bool pressed = (event.type == SDL_KEYDOWN);
 				switch (event.key.keysym.sym) {
+										case SDLK_g:
+											if (pressed) showGrid = !showGrid;
+											break;
 					case SDLK_w: up = pressed; break;
 					case SDLK_s: down = pressed; break;
 					case SDLK_a: left = pressed; break;
@@ -614,12 +618,48 @@ int main(int argc, char* argv[]) {
 		SDL_SetRenderDrawColor(renderer, 34, 139, 34, 255); // solid green (forest green)
 		SDL_RenderFillRect(renderer, &groundRect);
 
-		// Draw unwalkable area (off the island)
-		SDL_Rect unwalkableRect = {unwalkableX - camX, unwalkableY - camY, unwalkableW, unwalkableH};
-		SDL_SetRenderDrawColor(renderer, 200, 40, 40, 220); // red, semi-transparent
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-		SDL_RenderFillRect(renderer, &unwalkableRect);
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+		// --- Bigger Campfire rendering ---
+		// Place campfire near map center
+		int campfireX = worldW / 2 - 48;
+		int campfireY = worldH / 2 + 120;
+		SDL_Rect campfireRect = cameraTransform(campfireX, campfireY, 96, 48);
+		// Draw campfire base (logs)
+		SDL_SetRenderDrawColor(renderer, 110, 70, 30, 255);
+		for (int i = 0; i < 4; ++i) {
+			int logY = campfireRect.y + 32 + i * 6;
+			SDL_Rect logRect = {campfireRect.x + 8 + i * 16, logY, 80 - i * 16, 12};
+			SDL_RenderFillRect(renderer, &logRect);
+		}
+		// Animate fire (flicker)
+		float fireTime = SDL_GetTicks() / 300.0f;
+		int flameX = campfireRect.x + 48 + (int)(12 * std::sin(fireTime));
+		int flameY = campfireRect.y + 16 + (int)(4 * std::cos(fireTime * 1.7f));
+		// Draw outer flame (orange)
+		SDL_SetRenderDrawColor(renderer, 255, 140, 40, 220);
+		for (int r = 28; r > 14; r -= 3) {
+			for (int dy = -r; dy <= r; ++dy) {
+				for (int dx = -r; dx <= r; ++dx) {
+					if (dx*dx + dy*dy <= r*r) {
+						int px = flameX + dx;
+						int py = flameY + dy;
+						SDL_RenderDrawPoint(renderer, px, py);
+					}
+				}
+			}
+		}
+		// Draw inner flame (yellow)
+		SDL_SetRenderDrawColor(renderer, 255, 220, 80, 240);
+		for (int r = 14; r > 5; r -= 3) {
+			for (int dy = -r; dy <= r; ++dy) {
+				for (int dx = -r; dx <= r; ++dx) {
+					if (dx*dx + dy*dy <= r*r) {
+						int px = flameX + dx;
+						int py = flameY + dy;
+						SDL_RenderDrawPoint(renderer, px, py);
+					}
+				}
+			}
+		}
 
 		// (Zone rectangle removed for chase camera)
 
@@ -643,48 +683,108 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		// Draw grid overlay on top of grass
-		const int gridSpacing = 128;
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-		SDL_SetRenderDrawColor(renderer, 200, 200, 255, 180); // bright blue, semi-transparent
-		// Draw thicker grid lines (3px)
-		for (int gx = 0; gx <= worldW; gx += gridSpacing) {
-			int x = gx - camX;
-			if (x >= 0 && x < windowW) {
-				for (int t = -1; t <= 1; ++t) {
-					if (x + t >= 0 && x + t < windowW)
-						SDL_RenderDrawLine(renderer, x + t, 0, x + t, windowH);
-				}
-			}
-		}
-		for (int gy = 0; gy <= worldH; gy += gridSpacing) {
-			int y = gy - camY;
-			if (y >= 0 && y < windowH) {
-				for (int t = -1; t <= 1; ++t) {
-					if (y + t >= 0 && y + t < windowH)
-						SDL_RenderDrawLine(renderer, 0, y + t, windowW, y + t);
-				}
-			}
-		}
-		// Optionally: draw simple coordinate dots at grid intersections
-		SDL_SetRenderDrawColor(renderer, 255, 255, 0, 220); // yellow dots, semi-transparent
-		for (int gx = 0; gx <= worldW; gx += gridSpacing) {
-			for (int gy = 0; gy <= worldH; gy += gridSpacing) {
-				int x = gx - camX;
-				int y = gy - camY;
-				if (x >= 0 && x < windowW && y >= 0 && y < windowH) {
-					// Draw a 3x3 dot for visibility
-					for (int dx = -1; dx <= 1; ++dx) {
-						for (int dy = -1; dy <= 1; ++dy) {
-							int px = x + dx, py = y + dy;
-							if (px >= 0 && px < windowW && py >= 0 && py < windowH)
-								SDL_RenderDrawPoint(renderer, px, py);
-						}
+		// --- Trees and Bushes ---
+		// Place trees and bushes, avoid campfire area
+		int campfireCenterX = worldW / 2;
+		int campfireCenterY = worldH / 2 + 144;
+		int campfireRadius = 180;
+		int numTrees = 22;
+		for (int i = 0; i < numTrees; ++i) {
+			int tx = (i * 12347 + 55555) % worldW;
+			int ty = (i * 23491 + 88888) % worldH;
+			// Avoid campfire area
+			int dx = tx - campfireCenterX;
+			int dy = ty - campfireCenterY;
+			if (dx*dx + dy*dy < campfireRadius*campfireRadius) continue;
+			// Draw trunk
+			SDL_Rect trunk = cameraTransform(tx - 7, ty + 32, 14, 32);
+			SDL_SetRenderDrawColor(renderer, 110, 70, 30, 255);
+			SDL_RenderFillRect(renderer, &trunk);
+			// Draw foliage (simple circle, dark green)
+			int foliageR = 38 + (i % 3) * 6;
+			int cx = tx - camX;
+			int cy = ty - camY;
+			SDL_SetRenderDrawColor(renderer, 34, 100 + (i % 2) * 40, 34, 255);
+			for (int fy = -foliageR; fy <= foliageR; ++fy) {
+				for (int fx = -foliageR; fx <= foliageR; ++fx) {
+					if (fx*fx + fy*fy <= foliageR*foliageR) {
+						int px = cx + fx;
+						int py = cy + fy;
+						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+							SDL_RenderDrawPoint(renderer, px, py);
 					}
 				}
 			}
 		}
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+		// Bushes
+		int numBushes = 18;
+		for (int i = 0; i < numBushes; ++i) {
+			int bx = (i * 54321 + 33333) % worldW;
+			int by = (i * 87654 + 22222) % worldH;
+			// Avoid campfire area
+			int dx = bx - campfireCenterX;
+			int dy = by - campfireCenterY;
+			if (dx*dx + dy*dy < (campfireRadius-30)*(campfireRadius-30)) continue;
+			int bushR = 22 + (i % 2) * 8;
+			int cx = bx - camX;
+			int cy = by - camY;
+			SDL_SetRenderDrawColor(renderer, 60, 180, 60, 255);
+			for (int fy = -bushR; fy <= bushR; ++fy) {
+				for (int fx = -bushR; fx <= bushR; ++fx) {
+					if (fx*fx + fy*fy <= bushR*bushR) {
+						int px = cx + fx;
+						int py = cy + fy;
+						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+							SDL_RenderDrawPoint(renderer, px, py);
+					}
+				}
+			}
+		}
+
+		// Draw grid overlay on top of grass if enabled
+		if (showGrid) {
+			const int gridSpacing = 128;
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+			SDL_SetRenderDrawColor(renderer, 200, 200, 255, 180); // bright blue, semi-transparent
+			// Draw thicker grid lines (3px)
+			for (int gx = 0; gx <= worldW; gx += gridSpacing) {
+				int x = gx - camX;
+				if (x >= 0 && x < windowW) {
+					for (int t = -1; t <= 1; ++t) {
+						if (x + t >= 0 && x + t < windowW)
+							SDL_RenderDrawLine(renderer, x + t, 0, x + t, windowH);
+					}
+				}
+			}
+			for (int gy = 0; gy <= worldH; gy += gridSpacing) {
+				int y = gy - camY;
+				if (y >= 0 && y < windowH) {
+					for (int t = -1; t <= 1; ++t) {
+						if (y + t >= 0 && y + t < windowH)
+							SDL_RenderDrawLine(renderer, 0, y + t, windowW, y + t);
+					}
+				}
+			}
+			// Optionally: draw simple coordinate dots at grid intersections
+			SDL_SetRenderDrawColor(renderer, 255, 255, 0, 220); // yellow dots, semi-transparent
+			for (int gx = 0; gx <= worldW; gx += gridSpacing) {
+				for (int gy = 0; gy <= worldH; gy += gridSpacing) {
+					int x = gx - camX;
+					int y = gy - camY;
+					if (x >= 0 && x < windowW && y >= 0 && y < windowH) {
+						// Draw a 3x3 dot for visibility
+						for (int dx = -1; dx <= 1; ++dx) {
+							for (int dy = -1; dy <= 1; ++dy) {
+								int px = x + dx, py = y + dy;
+								if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+									SDL_RenderDrawPoint(renderer, px, py);
+							}
+						}
+					}
+				}
+			}
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+		}
 
 
 		// (Castle rendering removed)
