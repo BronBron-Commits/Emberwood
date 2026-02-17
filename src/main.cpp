@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 	}
 	int windowW = 1280;
 	int windowH = 720;
-	SDL_Window* window = SDL_CreateWindow("Emberwood", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowW, windowH, SDL_WINDOW_SHOWN);
+	SDL_Window* window = SDL_CreateWindow("Emberwood", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowW, windowH, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 	if (!window) {
 		std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
@@ -336,6 +336,9 @@ int main(int argc, char* argv[]) {
 	bool running = true;
 	SDL_Event event;
 	while (running) {
+		// Update window size in case of resize/fullscreen
+		SDL_GetWindowSize(window, &windowW, &windowH);
+
 		// --- FPS calculation ---
 		fpsFrames++;
 		Uint32 fpsCurrent = SDL_GetTicks();
@@ -378,6 +381,17 @@ int main(int argc, char* argv[]) {
 						if (pressed) {
 							currentOutfit = (currentOutfit - 1 + outfitColors.size()) % outfitColors.size();
 							regenerateSprites();
+						}
+						break;
+					// Toggle borderless fullscreen with F11
+					case SDLK_F11:
+						if (pressed) {
+							Uint32 flags = SDL_GetWindowFlags(window);
+							if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+								SDL_SetWindowFullscreen(window, 0); // back to windowed
+							} else {
+								SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP); // borderless fullscreen
+							}
 						}
 						break;
 				}
