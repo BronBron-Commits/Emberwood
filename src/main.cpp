@@ -71,6 +71,9 @@ int main(int argc, char* argv[]) {
 	const int fireballEnergyCost = 40;
 	const float energyRegenPerFrame = 3.0f; // Even faster regen (about 180 per second at 60fps)
 	float playerEnergyF = (float)playerEnergy;
+	// --- Fireball cooldown ---
+	const Uint32 fireballCooldownMs = 500; // 0.5 seconds
+	Uint32 lastFireballTime = 0;
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 		std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		return 1;
@@ -462,23 +465,27 @@ int main(int argc, char* argv[]) {
 						break;
 				}
 				if (pressed && event.key.keysym.sym == SDLK_SPACE) {
-					// Shoot fireball if enough energy
-					Character& player = characters[playerIndex];
-					if (playerEnergy >= fireballEnergyCost) {
-						float fx = player.x + avatarW / 2;
-						float fy = player.y + avatarH / 2;
-						float fireballSpeed = 16.0f;
-						float vx = 0, vy = 0;
-						if (facing == 0) { vx = fireballSpeed; }
-						else if (facing == 1) { vx = -fireballSpeed; }
-						else if (facing == 2) { vy = -fireballSpeed; }
-						else if (facing == 3) { vy = fireballSpeed; }
-						Fireball fb = {fx, fy, vx, vy, 60, 1.0f, false, 0};
-						fireballs.push_back(fb);
-						playerEnergy -= fireballEnergyCost;
-						playerEnergyF -= fireballEnergyCost;
-						if (playerEnergy < 0) playerEnergy = 0;
-						if (playerEnergyF < 0) playerEnergyF = 0;
+					// Shoot fireball if enough energy and cooldown expired
+					Uint32 now = SDL_GetTicks();
+					if (now - lastFireballTime >= fireballCooldownMs) {
+						Character& player = characters[playerIndex];
+						if (playerEnergy >= fireballEnergyCost) {
+							float fx = player.x + avatarW / 2;
+							float fy = player.y + avatarH / 2;
+							float fireballSpeed = 16.0f;
+							float vx = 0, vy = 0;
+							if (facing == 0) { vx = fireballSpeed; }
+							else if (facing == 1) { vx = -fireballSpeed; }
+							else if (facing == 2) { vy = -fireballSpeed; }
+							else if (facing == 3) { vy = fireballSpeed; }
+							Fireball fb = {fx, fy, vx, vy, 60, 1.0f, false, 0};
+							fireballs.push_back(fb);
+							playerEnergy -= fireballEnergyCost;
+							playerEnergyF -= fireballEnergyCost;
+							if (playerEnergy < 0) playerEnergy = 0;
+							if (playerEnergyF < 0) playerEnergyF = 0;
+							lastFireballTime = now;
+						}
 					}
 				}
 			}
@@ -808,37 +815,40 @@ int main(int argc, char* argv[]) {
 		// Render the active character
 		   // Render both wizard and knight using the wizard sprite logic, but modify knight's appearance
 		   if (playerIndex == 1) {
-			   // Knight: draw a full suit of silver armor, no robe or wizard hat, and put sword in hand
+			   // Knight: walking animation (swing legs and arms when moving)
+			   float moveSpeed = std::sqrt(player.vx * player.vx + player.vy * player.vy);
+			   bool isWalking = moveSpeed > 1.0f;
+			   float walkSwing = isWalking ? (walkFrame == 0 ? 1.0f : -1.0f) : 0.0f;
 			   // Draw main armor body (torso)
 			   SDL_SetRenderDrawColor(renderer, 180, 180, 200, 255);
 			   SDL_Rect torsoRect = { destRect.x + 30, destRect.y + 70, 60, 60 };
 			   SDL_RenderFillRect(renderer, &torsoRect);
 
-			   // Draw armored legs
+			   // Draw armored legs (swing)
 			   SDL_SetRenderDrawColor(renderer, 160, 160, 180, 255);
-			   SDL_Rect leftLeg = { destRect.x + 40, destRect.y + 130, 14, 28 };
-			   SDL_Rect rightLeg = { destRect.x + 66, destRect.y + 130, 14, 28 };
+			   SDL_Rect leftLeg = { destRect.x + 40 + (int)(6 * walkSwing), destRect.y + 130, 14, 28 };
+			   SDL_Rect rightLeg = { destRect.x + 66 - (int)(6 * walkSwing), destRect.y + 130, 14, 28 };
 			   SDL_RenderFillRect(renderer, &leftLeg);
 			   SDL_RenderFillRect(renderer, &rightLeg);
 
 			   // Draw armored boots
 			   SDL_SetRenderDrawColor(renderer, 100, 100, 120, 255);
-			   SDL_Rect leftBoot = { destRect.x + 40, destRect.y + 154, 14, 10 };
-			   SDL_Rect rightBoot = { destRect.x + 66, destRect.y + 154, 14, 10 };
+			   SDL_Rect leftBoot = { destRect.x + 40 + (int)(6 * walkSwing), destRect.y + 154, 14, 10 };
+			   SDL_Rect rightBoot = { destRect.x + 66 - (int)(6 * walkSwing), destRect.y + 154, 14, 10 };
 			   SDL_RenderFillRect(renderer, &leftBoot);
 			   SDL_RenderFillRect(renderer, &rightBoot);
 
-			   // Draw arms (armor)
+			   // Draw arms (swing)
 			   SDL_SetRenderDrawColor(renderer, 170, 170, 200, 255);
-			   SDL_Rect leftArm = { destRect.x + 18, destRect.y + 90, 16, 38 };
-			   SDL_Rect rightArm = { destRect.x + 86, destRect.y + 90, 16, 38 };
+			   SDL_Rect leftArm = { destRect.x + 18 - (int)(6 * walkSwing), destRect.y + 90, 16, 38 };
+			   SDL_Rect rightArm = { destRect.x + 86 + (int)(6 * walkSwing), destRect.y + 90, 16, 38 };
 			   SDL_RenderFillRect(renderer, &leftArm);
 			   SDL_RenderFillRect(renderer, &rightArm);
 
 			   // Draw hands (gauntlets)
 			   SDL_SetRenderDrawColor(renderer, 200, 200, 220, 255);
-			   SDL_Rect leftHand = { destRect.x + 18, destRect.y + 124, 16, 12 };
-			   SDL_Rect rightHand = { destRect.x + 86, destRect.y + 124, 16, 12 };
+			   SDL_Rect leftHand = { destRect.x + 18 - (int)(6 * walkSwing), destRect.y + 124, 16, 12 };
+			   SDL_Rect rightHand = { destRect.x + 86 + (int)(6 * walkSwing), destRect.y + 124, 16, 12 };
 			   SDL_RenderFillRect(renderer, &leftHand);
 			   SDL_RenderFillRect(renderer, &rightHand);
 
@@ -859,16 +869,14 @@ int main(int argc, char* argv[]) {
 			   // Draw sword in right hand (pointing up at 45 degrees, thicker and longer)
 			   float swordLength = 60.0f;
 			   float swordAngle = -M_PI / 4.0f; // 45 degrees up
-			   float handX = destRect.x + 86 + 16;
+			   float handX = destRect.x + 86 + 16 + (int)(6 * walkSwing);
 			   float handY = destRect.y + 130;
 			   float swordTipX = handX + swordLength * std::cos(swordAngle);
 			   float swordTipY = handY + swordLength * std::sin(swordAngle);
 			   SDL_SetRenderDrawColor(renderer, 200, 200, 220, 255);
-			   // Draw a thick sword blade (5 lines for thickness)
 			   for (int t = -2; t <= 2; ++t) {
 				   SDL_RenderDrawLine(renderer, (int)handX + t, (int)handY, (int)swordTipX + t, (int)swordTipY);
 			   }
-			   // Sword hilt (brown, short line at base, also thicker)
 			   float hiltLen = 18.0f;
 			   float hiltAngle = swordAngle + M_PI/2.0f;
 			   float hiltX1 = handX - hiltLen/2 * std::cos(hiltAngle);
