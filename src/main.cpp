@@ -1,9 +1,13 @@
+#include <algorithm>
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 #include <vector>
-// Fireball struct
+
 struct Fireball {
 	float x, y;
 	float vx, vy;
@@ -15,8 +19,6 @@ int main(int argc, char* argv[]) {
 		std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		return 1;
 	}
-
-	// Get display size for fullscreen
 	SDL_DisplayMode displayMode;
 	if (SDL_GetCurrentDisplayMode(0, &displayMode) != 0) {
 		std::cerr << "SDL_GetCurrentDisplayMode Error: " << SDL_GetError() << std::endl;
@@ -32,6 +34,8 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
+		// (zoneWidth is now fixed to 640 for debugging)
+
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (!renderer) {
 		std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
@@ -40,28 +44,31 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	// --- Marble floor texture generation ---
-	SDL_Texture* marbleTexture = nullptr;
-	const int tileSize = 64;
-	SDL_Surface* marbleSurface = SDL_CreateRGBSurface(0, tileSize, tileSize, 32,
-		0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-	if (marbleSurface) {
-		for (int y = 0; y < tileSize; ++y) {
-			for (int x = 0; x < tileSize; ++x) {
-				Uint8 base = 220 + (rand() % 20);
-				Uint32 color = SDL_MapRGB(marbleSurface->format, base, base, base);
-				float v = 0.5f * sinf((float)x * 0.15f + (float)y * 0.08f) + 0.5f;
-				if (v > 0.8f + 0.15f * ((rand() % 100) / 100.0f)) {
-					color = SDL_MapRGB(marbleSurface->format, 180, 180, 180);
-				}
-				((Uint32*)marbleSurface->pixels)[y * tileSize + x] = color;
-			}
-		}
-		marbleTexture = SDL_CreateTextureFromSurface(renderer, marbleSurface);
-		SDL_FreeSurface(marbleSurface);
-	}
+	// (Marble floor removed)
+
+	// --- Camera state (no zoom) ---
+	// Camera position
+	int camX = 0;
+	int camY = 0;
+	float camXf = 0.0f; // For smooth camera movement
+	const int zoneWidth = 640;
+	int currentZone = 0;
+	int targetZone = 0;
+	const float cameraLerp = 0.15f; // Smoothness factor (0.0-1.0)
+
+	// World size (bigger than window for scrolling)
+	const int worldW = 3000;
+	const int worldH = 2000;
 
 	// --- Wizard sprite animation setup ---
+	// Camera transform for pure 2D (no perspective)
+	auto cameraTransform = [&](float worldX, float worldY, float worldW, float worldH) -> SDL_Rect {
+		int sx = static_cast<int>(worldX - camX);
+		int sy = static_cast<int>(worldY - camY);
+		int sw = static_cast<int>(worldW);
+		int sh = static_cast<int>(worldH);
+		return SDL_Rect{ sx, sy, sw, sh };
+	};
 	const int avatarW = 120;
 	const int avatarH = 160;
 	auto createSpriteSurface = [&](bool isSide, bool isFront, int frame, int headBob, int hatTilt) -> SDL_Surface* {
@@ -70,6 +77,7 @@ int main(int argc, char* argv[]) {
 		if (!surf) return nullptr;
 		SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
 		// Body (rounded)
+		int pitch = surf->pitch / 4;
 		for (int y = 0; y < 80; ++y) {
 			int xRadius = 25 - (int)(12.0 * (1.0 - ((float)y / 80.0)));
 			int xStart = 60 - xRadius;
@@ -77,7 +85,7 @@ int main(int argc, char* argv[]) {
 			for (int x = xStart; x <= xEnd; ++x) {
 				if (x >= 0 && x < avatarW) {
 					Uint32* pixels = (Uint32*)surf->pixels;
-					pixels[(60 + y) * avatarW + x] = SDL_MapRGB(surf->format, 128, 0, 128);
+					pixels[(60 + y) * pitch + x] = SDL_MapRGB(surf->format, 128, 0, 128);
 				}
 			}
 		}
@@ -93,7 +101,7 @@ int main(int argc, char* argv[]) {
 					int py = headCenterY + y;
 					if (px >= 0 && px < avatarW && py >= 0 && py < avatarH) {
 						Uint32* pixels = (Uint32*)surf->pixels;
-						pixels[py * avatarW + px] = SDL_MapRGB(surf->format, 255, 220, 177);
+						pixels[py * pitch + px] = SDL_MapRGB(surf->format, 255, 220, 177);
 					}
 				}
 			}
@@ -110,7 +118,7 @@ int main(int argc, char* argv[]) {
 					int py = 140 + y;
 					if (px >= 0 && px < avatarW && py >= 0 && py < avatarH) {
 						Uint32* pixels = (Uint32*)surf->pixels;
-						pixels[py * avatarW + px] = SDL_MapRGB(surf->format, 60, 0, 60);
+						pixels[py * pitch + px] = SDL_MapRGB(surf->format, 60, 0, 60);
 					}
 				}
 			}
@@ -124,7 +132,7 @@ int main(int argc, char* argv[]) {
 						int py = footY + y;
 						if (px >= 0 && px < avatarW && py >= 0 && py < avatarH) {
 							Uint32* pixels = (Uint32*)surf->pixels;
-							pixels[py * avatarW + px] = SDL_MapRGB(surf->format, 60, 0, 60);
+							pixels[py * pitch + px] = SDL_MapRGB(surf->format, 60, 0, 60);
 						}
 					}
 				}
@@ -170,7 +178,7 @@ int main(int argc, char* argv[]) {
 				for (int x = xStart; x <= xEnd; ++x) {
 					if (x >= 0 && x < avatarW) {
 						Uint32* pixels = (Uint32*)surf->pixels;
-						pixels[(67 + y) * avatarW + x] = SDL_MapRGB(surf->format, 255, 255, 255);
+						pixels[(67 + y) * pitch + x] = SDL_MapRGB(surf->format, 255, 255, 255);
 					}
 				}
 			}
@@ -220,14 +228,17 @@ int main(int argc, char* argv[]) {
 	for (int i = 0; i < 2; ++i) {
 		if (spriteSideSurface[i]) {
 			spriteSideTexture[i] = SDL_CreateTextureFromSurface(renderer, spriteSideSurface[i]);
+			SDL_SetTextureBlendMode(spriteSideTexture[i], SDL_BLENDMODE_BLEND);
 			SDL_FreeSurface(spriteSideSurface[i]);
 		}
 		if (spriteBackSurface[i]) {
 			spriteBackTexture[i] = SDL_CreateTextureFromSurface(renderer, spriteBackSurface[i]);
+			SDL_SetTextureBlendMode(spriteBackTexture[i], SDL_BLENDMODE_BLEND);
 			SDL_FreeSurface(spriteBackSurface[i]);
 		}
 		if (spriteFrontSurface[i]) {
 			spriteFrontTexture[i] = SDL_CreateTextureFromSurface(renderer, spriteFrontSurface[i]);
+			SDL_SetTextureBlendMode(spriteFrontTexture[i], SDL_BLENDMODE_BLEND);
 			SDL_FreeSurface(spriteFrontSurface[i]);
 		}
 	}
@@ -236,12 +247,7 @@ int main(int argc, char* argv[]) {
 	int charX = windowW / 2;
 	int charY = windowH / 2;
 	const int speed = 5;
-	float zoom = 1.0f;
-	const float zoomStep = 0.1f;
-	const float minZoom = 0.5f;
-	const float maxZoom = 3.0f;
-	int camX = 0;
-	int camY = 0;
+	// Removed zoom variables
 	const int margin = 100;
 	int facing = 0; // 0=right, 1=left, 2=up, 3=down
 	int walkFrame = 0;
@@ -278,24 +284,17 @@ int main(int argc, char* argv[]) {
 					// Shoot fireball
 					float fx = charX + avatarW / 2;
 					float fy = charY + avatarH / 2;
-					float speed = 16.0f;
+					float fireballSpeed = 16.0f;
 					float vx = 0, vy = 0;
-					if (facing == 0) { vx = speed; }
-					else if (facing == 1) { vx = -speed; }
-					else if (facing == 2) { vy = -speed; }
-					else if (facing == 3) { vy = speed; }
+					if (facing == 0) { vx = fireballSpeed; }
+					else if (facing == 1) { vx = -fireballSpeed; }
+					else if (facing == 2) { vy = -fireballSpeed; }
+					else if (facing == 3) { vy = fireballSpeed; }
 					fireballs.push_back({fx, fy, vx, vy, 60});
 				}
-			} else if (event.type == SDL_MOUSEWHEEL) {
-				if (event.wheel.y > 0) {
-					zoom += zoomStep;
-					if (zoom > maxZoom) zoom = maxZoom;
-				} else if (event.wheel.y < 0) {
-					zoom -= zoomStep;
-					if (zoom < minZoom) zoom = minZoom;
-				}
 			}
-		}
+			// Removed mouse wheel zoom event
+		} // <-- MISSING BRACE FIXED
 		// Animation: always advance frame (persistent animation)
 		walkCounter++;
 		if (walkCounter >= walkFrameDelay) {
@@ -310,43 +309,102 @@ int main(int argc, char* argv[]) {
 		}
 		fireballs.erase(std::remove_if(fireballs.begin(), fireballs.end(), [](const Fireball& f) { return f.life <= 0; }), fireballs.end());
 
-		// Camera follows player if near edge
-		int spriteW = static_cast<int>(avatarW * zoom);
-		int spriteH = static_cast<int>(avatarH * zoom);
-		if (charX - camX < margin) camX = charX - margin;
-		if ((charX + spriteW) - camX > windowW - margin) camX = (charX + spriteW) - (windowW - margin);
-		if (charY - camY < margin) camY = charY - margin;
-		if ((charY + spriteH) - camY > windowH - margin) camY = (charY + spriteH) - (windowH - margin);
+		// Camera follows player if near edge of the screen, but clamps to world bounds
+		int spriteW = avatarW;
+		int spriteH = avatarH;
+		// Clamp player to world bounds
+		if (charX < 0) charX = 0;
+		if (charY < 0) charY = 0;
+		if (charX > worldW - avatarW) charX = worldW - avatarW;
+		if (charY > worldH - avatarH) charY = worldH - avatarH;
+
+		// Camera zone logic: snap to new zone if player leaves current zone
+		int playerZone = charX / zoneWidth;
+		if (playerZone != currentZone) {
+			targetZone = playerZone;
+			currentZone = playerZone;
+		}
+		float targetCamX = targetZone * zoneWidth;
+		// Clamp targetCamX to world bounds
+		if (targetCamX < 0) targetCamX = 0;
+		if (targetCamX > worldW - windowW) targetCamX = worldW - windowW;
+		// Smoothly move camera towards target zone
+		camXf += (targetCamX - camXf) * cameraLerp;
+		camX = static_cast<int>(camXf + 0.5f);
+		// Camera Y is always 0 (no vertical scroll)
+		camY = 0;
 
 		SDL_SetRenderDrawColor(renderer, 30, 30, 40, 255);
 		SDL_RenderClear(renderer);
-		// --- Render marble floor, tiled ---
-		if (marbleTexture) {
-			int viewW = static_cast<int>(windowW / zoom) + tileSize;
-			int viewH = static_cast<int>(windowH / zoom) + tileSize;
-			int startX = (camX / tileSize) * tileSize;
-			int startY = (camY / tileSize) * tileSize;
-			for (int y = startY; y < camY + viewH; y += tileSize) {
-				for (int x = startX; x < camX + viewW; x += tileSize) {
-					SDL_Rect dest = {
-						static_cast<int>((x - camX) * zoom),
-						static_cast<int>((y - camY) * zoom),
-						static_cast<int>(tileSize * zoom),
-						static_cast<int>(tileSize * zoom)
-					};
-					SDL_RenderCopy(renderer, marbleTexture, nullptr, &dest);
+
+		// Draw solid green ground rectangle (world size, but only visible part is drawn)
+		SDL_Rect groundRect = {0 - camX, 0 - camY, worldW, worldH};
+		SDL_SetRenderDrawColor(renderer, 34, 139, 34, 255); // solid green (forest green)
+		SDL_RenderFillRect(renderer, &groundRect);
+
+		// Draw red rectangle for first camera zone (region 0) with thick border for visibility
+		SDL_Rect zoneRect = {0 - camX, 0 - camY, zoneWidth, windowH};
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		// Draw thick border (3px)
+		for (int t = 0; t < 3; ++t) {
+			SDL_Rect thickRect = {zoneRect.x + t, zoneRect.y + t, zoneRect.w - 2 * t, zoneRect.h - 2 * t};
+			SDL_RenderDrawRect(renderer, &thickRect);
+		}
+
+		// ...existing code for static grass patches...
+		int numPatches = 80;
+		for (int i = 0; i < numPatches; ++i) {
+			int px = (i * 7919 + 12345) % worldW;
+			int py = (i * 15401 + 67890) % worldH;
+			int patchW = 18 + (i * 7) % 10;
+			int patchH = 8 + (i * 11) % 6;
+			SDL_SetRenderDrawColor(renderer, 60, 180, 60, 255); // lighter green
+			for (int dy = -patchH / 2; dy <= patchH / 2; ++dy) {
+				for (int dx = -patchW / 2; dx <= patchW / 2; ++dx) {
+					if ((dx * dx) * (patchH * patchH) + (dy * dy) * (patchW * patchW) <= (patchW * patchW) * (patchH * patchH)) {
+						int gx = px + dx - camX;
+						int gy = py + dy - camY;
+						if (gx >= 0 && gx < windowW && gy >= 0 && gy < windowH)
+							SDL_RenderDrawPoint(renderer, gx, gy);
+					}
 				}
 			}
 		}
-		// Render fireballs
-		for (const auto& f : fireballs) {
-			SDL_SetRenderDrawColor(renderer, 180, 0, 255, 255); // purple
-			for (int r = 10; r > 0; --r) {
-				for (int dy = -r; dy <= r; ++dy) {
-					for (int dx = -r; dx <= r; ++dx) {
-						if (dx*dx + dy*dy <= r*r) {
-							int px = static_cast<int>((f.x - camX) * zoom) + dx;
-							int py = static_cast<int>((f.y - camY) * zoom) + dy;
+
+		// Draw grid overlay on top of grass
+		const int gridSpacing = 128;
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 200, 200, 255, 180); // bright blue, semi-transparent
+		// Draw thicker grid lines (3px)
+		for (int gx = 0; gx <= worldW; gx += gridSpacing) {
+			int x = gx - camX;
+			if (x >= 0 && x < windowW) {
+				for (int t = -1; t <= 1; ++t) {
+					if (x + t >= 0 && x + t < windowW)
+						SDL_RenderDrawLine(renderer, x + t, 0, x + t, windowH);
+				}
+			}
+		}
+		for (int gy = 0; gy <= worldH; gy += gridSpacing) {
+			int y = gy - camY;
+			if (y >= 0 && y < windowH) {
+				for (int t = -1; t <= 1; ++t) {
+					if (y + t >= 0 && y + t < windowH)
+						SDL_RenderDrawLine(renderer, 0, y + t, windowW, y + t);
+				}
+			}
+		}
+		// Optionally: draw simple coordinate dots at grid intersections
+		SDL_SetRenderDrawColor(renderer, 255, 255, 0, 220); // yellow dots, semi-transparent
+		for (int gx = 0; gx <= worldW; gx += gridSpacing) {
+			for (int gy = 0; gy <= worldH; gy += gridSpacing) {
+				int x = gx - camX;
+				int y = gy - camY;
+				if (x >= 0 && x < windowW && y >= 0 && y < windowH) {
+					// Draw a 3x3 dot for visibility
+					for (int dx = -1; dx <= 1; ++dx) {
+						for (int dy = -1; dy <= 1; ++dy) {
+							int px = x + dx, py = y + dy;
 							if (px >= 0 && px < windowW && py >= 0 && py < windowH)
 								SDL_RenderDrawPoint(renderer, px, py);
 						}
@@ -354,8 +412,46 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+
+
+		// (Castle rendering removed)
+		// Render fireballs
+		for (const auto& f : fireballs) {
+			SDL_SetRenderDrawColor(renderer, 180, 0, 255, 255); // purple
+			SDL_Rect fbRect = cameraTransform(f.x - 10, f.y - 10, 20, 20);
+			for (int r = fbRect.w / 2; r > 0; --r) {
+				for (int dy = -r; dy <= r; ++dy) {
+					for (int dx = -r; dx <= r; ++dx) {
+						if (dx*dx + dy*dy <= r*r) {
+							int px = fbRect.x + fbRect.w / 2 + dx;
+							int py = fbRect.y + fbRect.h / 2 + dy;
+							if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+								SDL_RenderDrawPoint(renderer, px, py);
+						}
+					}
+				}
+			}
+		}
+		// Render aura particles around player
+		int auraParticleCount = 32;
+		float auraRadius = (avatarW + avatarH) / 4.0f + 10.0f;
+		float auraTime = SDL_GetTicks() / 1000.0f;
+		for (int i = 0; i < auraParticleCount; ++i) {
+			float angle = (2.0f * M_PI * i) / auraParticleCount + auraTime * 0.8f;
+			float px = charX + avatarW / 2 + std::cos(angle) * auraRadius;
+			float py = charY + avatarH / 2 + std::sin(angle) * auraRadius;
+			SDL_Rect auraRect = cameraTransform(px - 3, py - 3, 6, 6);
+			// Animate color for a magical effect
+			Uint8 r = 120 + 80 * std::sin(angle + auraTime);
+			Uint8 g = 120 + 80 * std::sin(angle + auraTime + 2.0f);
+			Uint8 b = 255;
+			SDL_SetRenderDrawColor(renderer, r, g, b, 180);
+			SDL_RenderFillRect(renderer, &auraRect);
+		}
+
 		// Render correct sprite for direction
-		SDL_Rect destRect = { charX - camX, charY - camY, spriteW, spriteH };
+		SDL_Rect destRect = cameraTransform(charX, charY, avatarW, avatarH);
 		if (facing == 2 && spriteBackTexture[walkFrame]) {
 			SDL_RenderCopy(renderer, spriteBackTexture[walkFrame], nullptr, &destRect);
 		} else if (facing == 3 && spriteFrontTexture[walkFrame]) {
@@ -370,9 +466,6 @@ int main(int argc, char* argv[]) {
 		if (spriteSideTexture[i]) SDL_DestroyTexture(spriteSideTexture[i]);
 		if (spriteBackTexture[i]) SDL_DestroyTexture(spriteBackTexture[i]);
 		if (spriteFrontTexture[i]) SDL_DestroyTexture(spriteFrontTexture[i]);
-	}
-	if (marbleTexture) {
-		SDL_DestroyTexture(marbleTexture);
 	}
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
