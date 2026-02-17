@@ -367,6 +367,8 @@ int main(int argc, char* argv[]) {
 	// Use a vector of Character objects
 	std::vector<Character> characters;
 	characters.push_back(createNewCharacter("Wizard", windowW / 2.0f, windowH / 2.0f, {128, 0, 128}, {200, 180, 60}));
+	// Add a second character: Knight
+	characters.push_back(createNewCharacter("Knight", windowW / 2.0f + 200, windowH / 2.0f, {120, 120, 130}, {110, 70, 30}));
 	// For now, the first character is the player
 	int playerIndex = 0;
 
@@ -421,6 +423,14 @@ int main(int argc, char* argv[]) {
 					case SDLK_s: down = pressed; break;
 					case SDLK_a: left = pressed; break;
 					case SDLK_d: right = pressed; break;
+					// Switch to Wizard (index 0)
+					case SDLK_1:
+						if (pressed) playerIndex = 0;
+						break;
+					// Switch to Knight (index 1)
+					case SDLK_2:
+						if (pressed && characters.size() > 1) playerIndex = 1;
+						break;
 					// Outfit color cycling
 					case SDLK_F1:
 						if (pressed) {
@@ -773,7 +783,6 @@ int main(int argc, char* argv[]) {
 		int shadowY = player.y + avatarH - shadowH / 2;
 		SDL_Rect shadowRect = cameraTransform(shadowX, shadowY, shadowW, shadowH);
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 90); // semi-transparent black
-		// Draw ellipse for shadow
 		for (int dy = -shadowH / 2; dy <= shadowH / 2; ++dy) {
 			for (int dx = -shadowW / 2; dx <= shadowW / 2; ++dx) {
 				if ((dx * dx) * (shadowH * shadowH) + (dy * dy) * (shadowW * shadowW) <= (shadowW * shadowW) * (shadowH * shadowH)) {
@@ -785,14 +794,21 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-		// Render correct sprite for direction
-		if (facing == 2 && spriteBackTexture[walkFrame]) {
-			SDL_RenderCopy(renderer, spriteBackTexture[walkFrame], nullptr, &destRect);
-		} else if (facing == 3 && spriteFrontTexture[walkFrame]) {
-			SDL_RenderCopy(renderer, spriteFrontTexture[walkFrame], nullptr, &destRect);
-		} else if ((facing == 0 || facing == 1) && spriteSideTexture[walkFrame]) {
-			SDL_RendererFlip flip = (facing == 1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-			SDL_RenderCopyEx(renderer, spriteSideTexture[walkFrame], nullptr, &destRect, 0, nullptr, flip);
+
+		// Render the active character
+		if (playerIndex == 1) {
+			// Knight: use custom knight renderer
+			renderKnightWithScythe(renderer, player, fpsFont);
+		} else {
+			// Wizard: use default sprite logic
+			if (facing == 2 && spriteBackTexture[walkFrame]) {
+				SDL_RenderCopy(renderer, spriteBackTexture[walkFrame], nullptr, &destRect);
+			} else if (facing == 3 && spriteFrontTexture[walkFrame]) {
+				SDL_RenderCopy(renderer, spriteFrontTexture[walkFrame], nullptr, &destRect);
+			} else if ((facing == 0 || facing == 1) && spriteSideTexture[walkFrame]) {
+				SDL_RendererFlip flip = (facing == 1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+				SDL_RenderCopyEx(renderer, spriteSideTexture[walkFrame], nullptr, &destRect, 0, nullptr, flip);
+			}
 		}
 		// --- Mini Map Rendering ---
 		const int miniMapW = 240;
