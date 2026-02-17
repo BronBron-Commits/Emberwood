@@ -1,7 +1,7 @@
 CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj: \
- C:\projects\emberwood\src\entities\Tree.cpp \
- C:\projects\emberwood\src\entities\Tree.h \
- C:\projects\emberwood\src\entities\Entity.h \
+ C:\Projects\Emberwood\src\entities\Tree.cpp \
+ C:\Projects\Emberwood\src\entities\Tree.h \
+ C:\Projects\Emberwood\src\entities\Entity.h \
  C:/msys64/mingw64/include/c++/15.2.0/iostream \
  C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \

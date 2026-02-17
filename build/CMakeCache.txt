@@ -252,7 +252,7 @@ Emberwood_BINARY_DIR:STATIC=C:/Projects/Emberwood/build
 Emberwood_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
-Emberwood_SOURCE_DIR:STATIC=C:/projects/emberwood
+Emberwood_SOURCE_DIR:STATIC=C:/Projects/Emberwood
 
 
 ########################

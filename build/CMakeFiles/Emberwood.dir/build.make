@@ -52,7 +52,7 @@ RM = C:\msys64\mingw64\bin\cmake.exe -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = C:\projects\emberwood
+CMAKE_SOURCE_DIR = C:\Projects\Emberwood
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = C:\Projects\Emberwood\build
@@ -73,63 +73,63 @@ CMakeFiles/Emberwood.dir/codegen:
 
 CMakeFiles/Emberwood.dir/src/main.cpp.obj: CMakeFiles/Emberwood.dir/flags.make
 CMakeFiles/Emberwood.dir/src/main.cpp.obj: CMakeFiles/Emberwood.dir/includes_CXX.rsp
-CMakeFiles/Emberwood.dir/src/main.cpp.obj: C:/projects/emberwood/src/main.cpp
+CMakeFiles/Emberwood.dir/src/main.cpp.obj: C:/Projects/Emberwood/src/main.cpp
 CMakeFiles/Emberwood.dir/src/main.cpp.obj: CMakeFiles/Emberwood.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Emberwood\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Emberwood.dir/src/main.cpp.obj"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Emberwood.dir/src/main.cpp.obj -MF CMakeFiles\Emberwood.dir\src\main.cpp.obj.d -o CMakeFiles\Emberwood.dir\src\main.cpp.obj -c C:\projects\emberwood\src\main.cpp
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Emberwood.dir/src/main.cpp.obj -MF CMakeFiles\Emberwood.dir\src\main.cpp.obj.d -o CMakeFiles\Emberwood.dir\src\main.cpp.obj -c C:\Projects\Emberwood\src\main.cpp
 
 CMakeFiles/Emberwood.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Emberwood.dir/src/main.cpp.i"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\projects\emberwood\src\main.cpp > CMakeFiles\Emberwood.dir\src\main.cpp.i
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Projects\Emberwood\src\main.cpp > CMakeFiles\Emberwood.dir\src\main.cpp.i
 
 CMakeFiles/Emberwood.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Emberwood.dir/src/main.cpp.s"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\projects\emberwood\src\main.cpp -o CMakeFiles\Emberwood.dir\src\main.cpp.s
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Projects\Emberwood\src\main.cpp -o CMakeFiles\Emberwood.dir\src\main.cpp.s
 
 CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj: CMakeFiles/Emberwood.dir/flags.make
 CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj: CMakeFiles/Emberwood.dir/includes_CXX.rsp
-CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj: C:/projects/emberwood/src/engine/Renderer.cpp
+CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj: C:/Projects/Emberwood/src/engine/Renderer.cpp
 CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj: CMakeFiles/Emberwood.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Emberwood\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj -MF CMakeFiles\Emberwood.dir\src\engine\Renderer.cpp.obj.d -o CMakeFiles\Emberwood.dir\src\engine\Renderer.cpp.obj -c C:\projects\emberwood\src\engine\Renderer.cpp
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj -MF CMakeFiles\Emberwood.dir\src\engine\Renderer.cpp.obj.d -o CMakeFiles\Emberwood.dir\src\engine\Renderer.cpp.obj -c C:\Projects\Emberwood\src\engine\Renderer.cpp
 
 CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.i"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\projects\emberwood\src\engine\Renderer.cpp > CMakeFiles\Emberwood.dir\src\engine\Renderer.cpp.i
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Projects\Emberwood\src\engine\Renderer.cpp > CMakeFiles\Emberwood.dir\src\engine\Renderer.cpp.i
 
 CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.s"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\projects\emberwood\src\engine\Renderer.cpp -o CMakeFiles\Emberwood.dir\src\engine\Renderer.cpp.s
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Projects\Emberwood\src\engine\Renderer.cpp -o CMakeFiles\Emberwood.dir\src\engine\Renderer.cpp.s
 
 CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj: CMakeFiles/Emberwood.dir/flags.make
 CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj: CMakeFiles/Emberwood.dir/includes_CXX.rsp
-CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj: C:/projects/emberwood/src/engine/TextureManager.cpp
+CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj: C:/Projects/Emberwood/src/engine/TextureManager.cpp
 CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj: CMakeFiles/Emberwood.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Emberwood\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj -MF CMakeFiles\Emberwood.dir\src\engine\TextureManager.cpp.obj.d -o CMakeFiles\Emberwood.dir\src\engine\TextureManager.cpp.obj -c C:\projects\emberwood\src\engine\TextureManager.cpp
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.obj -MF CMakeFiles\Emberwood.dir\src\engine\TextureManager.cpp.obj.d -o CMakeFiles\Emberwood.dir\src\engine\TextureManager.cpp.obj -c C:\Projects\Emberwood\src\engine\TextureManager.cpp
 
 CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.i"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\projects\emberwood\src\engine\TextureManager.cpp > CMakeFiles\Emberwood.dir\src\engine\TextureManager.cpp.i
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Projects\Emberwood\src\engine\TextureManager.cpp > CMakeFiles\Emberwood.dir\src\engine\TextureManager.cpp.i
 
 CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Emberwood.dir/src/engine/TextureManager.cpp.s"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\projects\emberwood\src\engine\TextureManager.cpp -o CMakeFiles\Emberwood.dir\src\engine\TextureManager.cpp.s
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Projects\Emberwood\src\engine\TextureManager.cpp -o CMakeFiles\Emberwood.dir\src\engine\TextureManager.cpp.s
 
 CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj: CMakeFiles/Emberwood.dir/flags.make
 CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj: CMakeFiles/Emberwood.dir/includes_CXX.rsp
-CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj: C:/projects/emberwood/src/entities/Tree.cpp
+CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj: C:/Projects/Emberwood/src/entities/Tree.cpp
 CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj: CMakeFiles/Emberwood.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Emberwood\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj -MF CMakeFiles\Emberwood.dir\src\entities\Tree.cpp.obj.d -o CMakeFiles\Emberwood.dir\src\entities\Tree.cpp.obj -c C:\projects\emberwood\src\entities\Tree.cpp
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.obj -MF CMakeFiles\Emberwood.dir\src\entities\Tree.cpp.obj.d -o CMakeFiles\Emberwood.dir\src\entities\Tree.cpp.obj -c C:\Projects\Emberwood\src\entities\Tree.cpp
 
 CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.i"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\projects\emberwood\src\entities\Tree.cpp > CMakeFiles\Emberwood.dir\src\entities\Tree.cpp.i
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Projects\Emberwood\src\entities\Tree.cpp > CMakeFiles\Emberwood.dir\src\entities\Tree.cpp.i
 
 CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Emberwood.dir/src/entities/Tree.cpp.s"
-	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\projects\emberwood\src\entities\Tree.cpp -o CMakeFiles\Emberwood.dir\src\entities\Tree.cpp.s
+	C:\msys64\mingw64\bin\c++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Projects\Emberwood\src\entities\Tree.cpp -o CMakeFiles\Emberwood.dir\src\entities\Tree.cpp.s
 
 # Object files for target Emberwood
 Emberwood_OBJECTS = \
@@ -174,6 +174,6 @@ CMakeFiles/Emberwood.dir/clean:
 .PHONY : CMakeFiles/Emberwood.dir/clean
 
 CMakeFiles/Emberwood.dir/depend:
-	$(CMAKE_COMMAND) -E cmake_depends "MinGW Makefiles" C:\projects\emberwood C:\projects\emberwood C:\Projects\Emberwood\build C:\Projects\Emberwood\build C:\Projects\Emberwood\build\CMakeFiles\Emberwood.dir\DependInfo.cmake "--color=$(COLOR)" Emberwood
+	$(CMAKE_COMMAND) -E cmake_depends "MinGW Makefiles" C:\Projects\Emberwood C:\Projects\Emberwood C:\Projects\Emberwood\build C:\Projects\Emberwood\build C:\Projects\Emberwood\build\CMakeFiles\Emberwood.dir\DependInfo.cmake "--color=$(COLOR)" Emberwood
 .PHONY : CMakeFiles/Emberwood.dir/depend
 

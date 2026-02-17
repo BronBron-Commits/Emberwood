@@ -1,4 +1,4 @@
-# Install script for directory: C:/projects/emberwood
+# Install script for directory: C:/Projects/Emberwood
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

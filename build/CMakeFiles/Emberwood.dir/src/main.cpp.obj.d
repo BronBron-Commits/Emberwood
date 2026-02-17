@@ -1,12 +1,12 @@
 CMakeFiles/Emberwood.dir/src/main.cpp.obj: \
- C:\projects\emberwood\src\main.cpp \
- C:/projects/emberwood/include/SDL2/SDL.h \
- C:/projects/emberwood/include/SDL2/SDL_main.h \
- C:/projects/emberwood/include/SDL2/SDL_stdinc.h \
- C:/projects/emberwood/include/SDL2/SDL_config.h \
- C:/projects/emberwood/include/SDL2/SDL_platform.h \
- C:/projects/emberwood/include/SDL2/begin_code.h \
- C:/projects/emberwood/include/SDL2/close_code.h \
+ C:\Projects\Emberwood\src\main.cpp \
+ C:/Projects/Emberwood/include/SDL2/SDL.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_main.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_stdinc.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_config.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_platform.h \
+ C:/Projects/Emberwood/include/SDL2/begin_code.h \
+ C:/Projects/Emberwood/include/SDL2/close_code.h \
  C:/msys64/mingw64/include/stdio.h \
  C:/msys64/mingw64/include/corecrt_stdio_config.h \
  C:/msys64/mingw64/include/corecrt.h C:/msys64/mingw64/include/_mingw.h \
@@ -87,19 +87,19 @@ CMakeFiles/Emberwood.dir/src/main.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_hermite.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_laguerre.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/riemann_zeta.tcc \
- C:/projects/emberwood/include/SDL2/SDL_assert.h \
- C:/projects/emberwood/include/SDL2/SDL_atomic.h \
- C:/projects/emberwood/include/SDL2/SDL_audio.h \
- C:/projects/emberwood/include/SDL2/SDL_error.h \
- C:/projects/emberwood/include/SDL2/SDL_endian.h \
- C:/projects/emberwood/include/SDL2/SDL_mutex.h \
- C:/projects/emberwood/include/SDL2/SDL_thread.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_assert.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_atomic.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_audio.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_error.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_endian.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_mutex.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_thread.h \
  C:/msys64/mingw64/include/process.h \
  C:/msys64/mingw64/include/corecrt_startup.h \
  C:/msys64/mingw64/include/sys/types.h \
- C:/projects/emberwood/include/SDL2/SDL_rwops.h \
- C:/projects/emberwood/include/SDL2/SDL_clipboard.h \
- C:/projects/emberwood/include/SDL2/SDL_cpuinfo.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_rwops.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_clipboard.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_cpuinfo.h \
  C:/msys64/mingw64/include/intrin.h C:/msys64/mingw64/include/setjmp.h \
  C:/msys64/mingw64/include/psdk_inc/intrin-impl.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/x86intrin.h \
@@ -220,41 +220,41 @@ CMakeFiles/Emberwood.dir/src/main.cpp.obj: \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/ammintrin.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xopintrin.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/cpuid.h \
- C:/projects/emberwood/include/SDL2/SDL_events.h \
- C:/projects/emberwood/include/SDL2/SDL_video.h \
- C:/projects/emberwood/include/SDL2/SDL_pixels.h \
- C:/projects/emberwood/include/SDL2/SDL_rect.h \
- C:/projects/emberwood/include/SDL2/SDL_surface.h \
- C:/projects/emberwood/include/SDL2/SDL_blendmode.h \
- C:/projects/emberwood/include/SDL2/SDL_keyboard.h \
- C:/projects/emberwood/include/SDL2/SDL_keycode.h \
- C:/projects/emberwood/include/SDL2/SDL_scancode.h \
- C:/projects/emberwood/include/SDL2/SDL_mouse.h \
- C:/projects/emberwood/include/SDL2/SDL_joystick.h \
- C:/projects/emberwood/include/SDL2/SDL_guid.h \
- C:/projects/emberwood/include/SDL2/SDL_gamecontroller.h \
- C:/projects/emberwood/include/SDL2/SDL_sensor.h \
- C:/projects/emberwood/include/SDL2/SDL_quit.h \
- C:/projects/emberwood/include/SDL2/SDL_gesture.h \
- C:/projects/emberwood/include/SDL2/SDL_touch.h \
- C:/projects/emberwood/include/SDL2/SDL_filesystem.h \
- C:/projects/emberwood/include/SDL2/SDL_haptic.h \
- C:/projects/emberwood/include/SDL2/SDL_hidapi.h \
- C:/projects/emberwood/include/SDL2/SDL_hints.h \
- C:/projects/emberwood/include/SDL2/SDL_loadso.h \
- C:/projects/emberwood/include/SDL2/SDL_log.h \
- C:/projects/emberwood/include/SDL2/SDL_messagebox.h \
- C:/projects/emberwood/include/SDL2/SDL_metal.h \
- C:/projects/emberwood/include/SDL2/SDL_power.h \
- C:/projects/emberwood/include/SDL2/SDL_render.h \
- C:/projects/emberwood/include/SDL2/SDL_shape.h \
- C:/projects/emberwood/include/SDL2/SDL_system.h \
- C:/projects/emberwood/include/SDL2/SDL_timer.h \
- C:/projects/emberwood/include/SDL2/SDL_version.h \
- C:/projects/emberwood/include/SDL2/SDL_locale.h \
- C:/projects/emberwood/include/SDL2/SDL_misc.h \
- C:/projects/emberwood/include/SDL2/SDL_ttf.h \
- C:/projects/emberwood/include/SDL2/SDL.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_events.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_video.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_pixels.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_rect.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_surface.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_blendmode.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_keyboard.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_keycode.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_scancode.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_mouse.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_joystick.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_guid.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_gamecontroller.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_sensor.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_quit.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_gesture.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_touch.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_filesystem.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_haptic.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_hidapi.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_hints.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_loadso.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_log.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_messagebox.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_metal.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_power.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_render.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_shape.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_system.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_timer.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_version.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_locale.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_misc.h \
+ C:/Projects/Emberwood/include/SDL2/SDL_ttf.h \
+ C:/Projects/Emberwood/include/SDL2/SDL.h \
  C:/msys64/mingw64/include/c++/15.2.0/iostream \
  C:/msys64/mingw64/include/c++/15.2.0/ostream \
  C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.h \

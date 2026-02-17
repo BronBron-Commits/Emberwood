@@ -7,6 +7,7 @@ set(CMAKE_DEPENDS_GENERATOR "MinGW Makefiles")
 # The top level Makefile was generated from the following files:
 set(CMAKE_MAKEFILE_DEPENDS
   "CMakeCache.txt"
+  "C:/Projects/Emberwood/CMakeLists.txt"
   "CMakeFiles/4.2.3/CMakeCCompiler.cmake"
   "CMakeFiles/4.2.3/CMakeCXXCompiler.cmake"
   "CMakeFiles/4.2.3/CMakeRCCompiler.cmake"
@@ -43,7 +44,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "C:/msys64/mingw64/share/cmake/Modules/Platform/Windows-windres.cmake"
   "C:/msys64/mingw64/share/cmake/Modules/Platform/Windows.cmake"
   "C:/msys64/mingw64/share/cmake/Modules/Platform/WindowsPaths.cmake"
-  "C:/projects/emberwood/CMakeLists.txt"
   )
 
 # The corresponding makefile is:

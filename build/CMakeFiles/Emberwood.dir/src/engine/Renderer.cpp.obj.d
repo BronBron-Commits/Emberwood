@@ -1,6 +1,6 @@
 CMakeFiles/Emberwood.dir/src/engine/Renderer.cpp.obj: \
- C:\projects\emberwood\src\engine\Renderer.cpp \
- C:\projects\emberwood\src\engine\Renderer.h \
+ C:\Projects\Emberwood\src\engine\Renderer.cpp \
+ C:\Projects\Emberwood\src\engine\Renderer.h \
  C:/msys64/mingw64/include/c++/15.2.0/iostream \
  C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \

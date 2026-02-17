@@ -100,14 +100,12 @@ int main(int argc, char* argv[]) {
 	// (Marble floor removed)
 
 	// --- Camera state (no zoom) ---
-	// Camera position
+	// Camera position (chase camera)
 	int camX = 0;
 	int camY = 0;
 	float camXf = 0.0f; // For smooth camera movement
-	const int zoneWidth = 640;
-	int currentZone = 0;
-	int targetZone = 0;
-	const float cameraLerp = 0.035f; // Much slower, lazier camera movement for a chill feel
+	float camYf = 0.0f;
+	const float cameraLerp = 0.12f; // Faster, more responsive chase camera
 
 
 	// World size (bigger than window for scrolling)
@@ -564,22 +562,15 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		// Camera zone logic: snap to new zone if player leaves current zone
-		int playerZone = charX / zoneWidth;
-		if (playerZone != currentZone) {
-			targetZone = playerZone;
-			currentZone = playerZone;
-		}
-		float targetCamX = targetZone * zoneWidth;
-		// Clamp targetCamX to world bounds
+		// Chase camera: smoothly follow player center
+		float targetCamX = charX + avatarW / 2 - windowW / 2;
+		float targetCamY = charY + avatarH / 2 - windowH / 2;
+		// Clamp to world bounds
 		if (targetCamX < 0) targetCamX = 0;
 		if (targetCamX > worldW - windowW) targetCamX = worldW - windowW;
-		float targetCamY = charY + avatarH / 2 - windowH / 2;
 		if (targetCamY < 0) targetCamY = 0;
 		if (targetCamY > worldH - windowH) targetCamY = worldH - windowH;
-		// Smoothly move camera towards target zone (both axes)
 		camXf += (targetCamX - camXf) * cameraLerp;
-		static float camYf = 0.0f;
 		camYf += (targetCamY - camYf) * cameraLerp;
 		camX = static_cast<int>(camXf + 0.5f);
 		camY = static_cast<int>(camYf + 0.5f);
@@ -600,14 +591,7 @@ int main(int argc, char* argv[]) {
 		SDL_RenderFillRect(renderer, &unwalkableRect);
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 
-		// Draw red rectangle for first camera zone (region 0) with thick border for visibility
-		SDL_Rect zoneRect = {0 - camX, 0 - camY, zoneWidth, windowH};
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		// Draw thick border (3px)
-		for (int t = 0; t < 3; ++t) {
-			SDL_Rect thickRect = {zoneRect.x + t, zoneRect.y + t, zoneRect.w - 2 * t, zoneRect.h - 2 * t};
-			SDL_RenderDrawRect(renderer, &thickRect);
-		}
+		// (Zone rectangle removed for chase camera)
 
 		// ...existing code for static grass patches...
 		int numPatches = 80;
@@ -822,23 +806,7 @@ int main(int argc, char* argv[]) {
 		float scaleY = (float)miniMapH / worldH;
 
 
-		// Draw red zone rectangle for current camera zone on minimap, clamped to visible camera area
-		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-		// Camera Y is always 0, but if you add vertical scroll, use camY here
-		int camViewY = camY; // currently always 0
-		int camViewH = windowH; // visible window height in world coords
-		if (camViewH > worldH) camViewH = worldH;
-		int zoneMiniX = miniMapX + (int)(currentZone * zoneWidth * scaleX);
-		int zoneMiniY = miniMapY + (int)(camViewY * scaleY);
-		int zoneMiniW = (int)(zoneWidth * scaleX);
-		int zoneMiniH = (int)(camViewH * scaleY);
-		// Clamp to minimap bounds
-		if (zoneMiniY < miniMapY) zoneMiniY = miniMapY;
-		if (zoneMiniY + zoneMiniH > miniMapY + miniMapH) zoneMiniH = (miniMapY + miniMapH) - zoneMiniY;
-		for (int t = 0; t < 3; ++t) {
-			SDL_Rect thickRect = {zoneMiniX + t, zoneMiniY + t, zoneMiniW - 2 * t, zoneMiniH - 2 * t};
-			SDL_RenderDrawRect(renderer, &thickRect);
-		}
+		// (Zone rectangle on minimap removed for chase camera)
 
 		// Draw grid lines on minimap
 		SDL_SetRenderDrawColor(renderer, 80, 80, 120, 180);
