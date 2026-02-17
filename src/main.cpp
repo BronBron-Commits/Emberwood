@@ -620,6 +620,38 @@ int main(int argc, char* argv[]) {
 		SDL_SetRenderDrawColor(renderer, 34, 139, 34, 255); // solid green (forest green)
 		SDL_RenderFillRect(renderer, &groundRect);
 
+		// --- Courtyard Pavers around Campfire ---
+		int courtyardCenterX = worldW / 2;
+		int courtyardCenterY = worldH / 2 + 120;
+		int numRings = 3;
+		int ringSpacing = 36;
+		int paverW = 18, paverH = 18;
+		// Draw concentric rings
+		for (int ring = 1; ring <= numRings; ++ring) {
+			float radius = ring * ringSpacing;
+			int numPavers = 16 + ring * 8;
+			for (int i = 0; i < numPavers; ++i) {
+				float angle = (2 * M_PI * i) / numPavers;
+				float px = courtyardCenterX + std::cos(angle) * radius;
+				float py = courtyardCenterY + std::sin(angle) * radius;
+				SDL_Rect paverRect = cameraTransform(px - paverW/2, py - paverH/2, paverW, paverH);
+				SDL_SetRenderDrawColor(renderer, 200, 200, 210, 255); // light gray
+				SDL_RenderFillRect(renderer, &paverRect);
+			}
+		}
+		// Draw radial spokes
+		int numSpokes = 8;
+		for (int s = 0; s < numSpokes; ++s) {
+			float angle = (2 * M_PI * s) / numSpokes;
+			for (int r = ringSpacing; r <= numRings * ringSpacing; r += ringSpacing/2) {
+				float px = courtyardCenterX + std::cos(angle) * r;
+				float py = courtyardCenterY + std::sin(angle) * r;
+				SDL_Rect paverRect = cameraTransform(px - paverW/2, py - paverH/2, paverW, paverH);
+				SDL_SetRenderDrawColor(renderer, 180, 180, 200, 255); // slightly darker
+				SDL_RenderFillRect(renderer, &paverRect);
+			}
+		}
+
 		// --- Performance-Optimized Campfire rendering ---
 		int campfireX = worldW / 2 - 60;
 		int campfireY = worldH / 2 + 100;
