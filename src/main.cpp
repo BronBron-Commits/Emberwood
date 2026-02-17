@@ -454,8 +454,28 @@ int main(int argc, char* argv[]) {
 			SDL_RenderFillRect(renderer, &auraRect);
 		}
 
-		// Render correct sprite for direction
+		// Render character shadow (ellipse)
 		SDL_Rect destRect = cameraTransform(charX, charY, avatarW, avatarH);
+		int shadowW = avatarW * 0.7;
+		int shadowH = avatarH * 0.22;
+		int shadowX = charX + (avatarW - shadowW) / 2;
+		int shadowY = charY + avatarH - shadowH / 2;
+		SDL_Rect shadowRect = cameraTransform(shadowX, shadowY, shadowW, shadowH);
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 90); // semi-transparent black
+		// Draw ellipse for shadow
+		for (int dy = -shadowH / 2; dy <= shadowH / 2; ++dy) {
+			for (int dx = -shadowW / 2; dx <= shadowW / 2; ++dx) {
+				if ((dx * dx) * (shadowH * shadowH) + (dy * dy) * (shadowW * shadowW) <= (shadowW * shadowW) * (shadowH * shadowH)) {
+					int px = shadowRect.x + shadowW / 2 + dx;
+					int py = shadowRect.y + shadowH / 2 + dy;
+					if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+						SDL_RenderDrawPoint(renderer, px, py);
+				}
+			}
+		}
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+		// Render correct sprite for direction
 		if (facing == 2 && spriteBackTexture[walkFrame]) {
 			SDL_RenderCopy(renderer, spriteBackTexture[walkFrame], nullptr, &destRect);
 		} else if (facing == 3 && spriteFrontTexture[walkFrame]) {
