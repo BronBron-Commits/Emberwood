@@ -14,7 +14,6 @@
 
 #include <sstream>
 
-// Fallback for std::to_string on older compilers
 #ifndef HAS_STD_TO_STRING
 #if __cplusplus < 201103L || (defined(_MSC_VER) && _MSC_VER < 1800)
 namespace std {
@@ -27,6 +26,8 @@ namespace std {
 }
 #endif
 #endif
+
+
 
 
 
@@ -49,6 +50,7 @@ struct Fireball {
 
 
 int main(int argc, char* argv[]) {
+
 	bool showGrid = true;
 	// --- FPS display state ---
 	TTF_Init();
@@ -683,39 +685,11 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		// --- Trees and Bushes ---
-		// Place trees and bushes, avoid campfire area
+		// --- Bushes only (trees removed) ---
 		int campfireCenterX = worldW / 2;
 		int campfireCenterY = worldH / 2 + 144;
 		int campfireRadius = 180;
-		int numTrees = 22;
-		for (int i = 0; i < numTrees; ++i) {
-			int tx = (i * 12347 + 55555) % worldW;
-			int ty = (i * 23491 + 88888) % worldH;
-			// Avoid campfire area
-			int dx = tx - campfireCenterX;
-			int dy = ty - campfireCenterY;
-			if (dx*dx + dy*dy < campfireRadius*campfireRadius) continue;
-			// Draw trunk
-			SDL_Rect trunk = cameraTransform(tx - 7, ty + 32, 14, 32);
-			SDL_SetRenderDrawColor(renderer, 110, 70, 30, 255);
-			SDL_RenderFillRect(renderer, &trunk);
-			// Draw foliage (simple circle, dark green)
-			int foliageR = 38 + (i % 3) * 6;
-			int cx = tx - camX;
-			int cy = ty - camY;
-			SDL_SetRenderDrawColor(renderer, 34, 100 + (i % 2) * 40, 34, 255);
-			for (int fy = -foliageR; fy <= foliageR; ++fy) {
-				for (int fx = -foliageR; fx <= foliageR; ++fx) {
-					if (fx*fx + fy*fy <= foliageR*foliageR) {
-						int px = cx + fx;
-						int py = cy + fy;
-						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
-							SDL_RenderDrawPoint(renderer, px, py);
-					}
-				}
-			}
-		}
+
 		// Bushes
 		int numBushes = 18;
 		for (int i = 0; i < numBushes; ++i) {
@@ -726,16 +700,40 @@ int main(int argc, char* argv[]) {
 			int dy = by - campfireCenterY;
 			if (dx*dx + dy*dy < (campfireRadius-30)*(campfireRadius-30)) continue;
 			int bushR = 22 + (i % 2) * 8;
+			int camCenterX = camX + windowW / 2;
+			int camCenterY = camY + windowH / 2;
+			int dist2 = (bx - camCenterX) * (bx - camCenterX) + (by - camCenterY) * (by - camCenterY);
+			bool lowDetail = dist2 > 600*600;
 			int cx = bx - camX;
 			int cy = by - camY;
-			SDL_SetRenderDrawColor(renderer, 60, 180, 60, 255);
-			for (int fy = -bushR; fy <= bushR; ++fy) {
-				for (int fx = -bushR; fx <= bushR; ++fx) {
-					if (fx*fx + fy*fy <= bushR*bushR) {
-						int px = cx + fx;
-						int py = cy + fy;
-						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
-							SDL_RenderDrawPoint(renderer, px, py);
+			// Culling: skip if bush is completely outside the window
+			int bushMinX = cx - bushR, bushMaxX = cx + bushR;
+			int bushMinY = cy - bushR, bushMaxY = cy + bushR;
+			if (bushMaxX < 0 || bushMinX > windowW || bushMaxY < 0 || bushMinY > windowH) continue;
+			if (lowDetail) {
+				// Simple small circle for far bushes
+				int lodR = bushR * 0.5;
+				SDL_SetRenderDrawColor(renderer, 60, 180, 60, 255);
+				for (int fy = -lodR; fy <= lodR; ++fy) {
+					for (int fx = -lodR; fx <= lodR; ++fx) {
+						if (fx*fx + fy*fy <= lodR*lodR) {
+							int px = cx + fx;
+							int py = cy + fy;
+							if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+								SDL_RenderDrawPoint(renderer, px, py);
+						}
+					}
+				}
+			} else {
+				SDL_SetRenderDrawColor(renderer, 60, 180, 60, 255);
+				for (int fy = -bushR; fy <= bushR; ++fy) {
+					for (int fx = -bushR; fx <= bushR; ++fx) {
+						if (fx*fx + fy*fy <= bushR*bushR) {
+							int px = cx + fx;
+							int py = cy + fy;
+							if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+								SDL_RenderDrawPoint(renderer, px, py);
+						}
 					}
 				}
 			}
