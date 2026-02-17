@@ -149,18 +149,49 @@ int main(int argc, char* argv[]) {
 			0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 		if (!surf) return nullptr;
 		SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
-		// Body (rounded)
+		// Medieval robe body (tunic upper, skirt lower, belt, trim)
 		int pitch = surf->pitch / 4;
-		for (int y = 0; y < 80; ++y) {
-			int xRadius = 25 - (int)(12.0 * (1.0 - ((float)y / 80.0)));
+		// Tunic upper body (rounded)
+		for (int y = 0; y < 50; ++y) {
+			int xRadius = 22 - (int)(10.0 * (1.0 - ((float)y / 50.0)));
 			int xStart = 60 - xRadius;
 			int xEnd = 60 + xRadius;
 			for (int x = xStart; x <= xEnd; ++x) {
 				if (x >= 0 && x < avatarW) {
 					Uint32* pixels = (Uint32*)surf->pixels;
-					pixels[(60 + y) * pitch + x] = SDL_MapRGB(surf->format, outfit.r, outfit.g, outfit.b);
+					pixels[(70 + y) * pitch + x] = SDL_MapRGB(surf->format, outfit.r, outfit.g, outfit.b);
 				}
 			}
+		}
+		// Robe skirt (wider, with trim)
+		for (int y = 0; y < 30; ++y) {
+			int xRadius = 28 - (int)(6.0 * ((float)y / 30.0));
+			int xStart = 60 - xRadius;
+			int xEnd = 60 + xRadius;
+			for (int x = xStart; x <= xEnd; ++x) {
+				if (x >= 0 && x < avatarW) {
+					Uint32* pixels = (Uint32*)surf->pixels;
+					// Add gold trim at the bottom
+					if (y == 29 || y == 28)
+						pixels[(120 + y) * pitch + x] = SDL_MapRGB(surf->format, 200, 180, 60);
+					else
+						pixels[(120 + y) * pitch + x] = SDL_MapRGB(surf->format, outfit.r, outfit.g, outfit.b);
+				}
+			}
+		}
+		// Belt (brown)
+		for (int y = 0; y < 5; ++y) {
+			for (int x = 40; x < 80; ++x) {
+				Uint32* pixels = (Uint32*)surf->pixels;
+				pixels[(115 + y) * pitch + x] = SDL_MapRGB(surf->format, 110, 70, 30);
+			}
+		}
+		// Buttons (vertical, gold)
+		for (int y = 0; y < 3; ++y) {
+			int px = 60;
+			int py = 90 + y * 10;
+			Uint32* pixels = (Uint32*)surf->pixels;
+			pixels[py * pitch + px] = SDL_MapRGB(surf->format, 220, 200, 80);
 		}
 		// Head (ellipse) with bob
 		int headCenterX = 60;
@@ -179,47 +210,62 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
-		// Limbs
-			if (isSide) {
-				int legOffset = (frame == 0 ? 10 : -10);
-				// Leg (tapered)
-				for (int y = 0; y < 20; ++y) {
-					int legX = 65 + legOffset + y / 8;
-					int legW = 8 - y / 8;
-					for (int x = 0; x < legW; ++x) {
-						int px = legX + x;
-						int py = 140 + y;
+		// Limbs (robe sleeves and boots)
+		if (isSide) {
+			int legOffset = (frame == 0 ? 10 : -10);
+			// Robe sleeve (wide, matching robe)
+			for (int y = 0; y < 30; ++y) {
+				int armX = 35 + legOffset + y / 8;
+				int armW = 16 - y / 8;
+				for (int x = 0; x < armW; ++x) {
+					int px = armX + x;
+					int py = 80 + y;
+					if (px >= 0 && px < avatarW && py >= 0 && py < avatarH) {
+						Uint32* pixels = (Uint32*)surf->pixels;
+						pixels[py * pitch + px] = SDL_MapRGB(surf->format, outfit.r, outfit.g, outfit.b);
+					}
+				}
+			}
+			// Leg (under robe, boots)
+			for (int y = 0; y < 20; ++y) {
+				int legX = 65 + legOffset + y / 8;
+				int legW = 8 - y / 8;
+				for (int x = 0; x < legW; ++x) {
+					int px = legX + x;
+					int py = 150 + y;
+					if (px >= 0 && px < avatarW && py >= 0 && py < avatarH) {
+						Uint32* pixels = (Uint32*)surf->pixels;
+						pixels[py * pitch + px] = SDL_MapRGB(surf->format, 60, 0, 60);
+					}
+				}
+			}
+			// Boot (circle)
+			int footX = 65 + legOffset + 3;
+			int footY = 168;
+			for (int y = -2; y <= 2; ++y) {
+				for (int x = -2; x <= 2; ++x) {
+					if (x * x + y * y <= 4) {
+						int px = footX + x;
+						int py = footY + y;
 						if (px >= 0 && px < avatarW && py >= 0 && py < avatarH) {
 							Uint32* pixels = (Uint32*)surf->pixels;
 							pixels[py * pitch + px] = SDL_MapRGB(surf->format, 60, 0, 60);
 						}
 					}
 				}
-				// Foot (circle)
-				int footX = 65 + legOffset + 3;
-				int footY = 158;
-				for (int y = -2; y <= 2; ++y) {
-					for (int x = -2; x <= 2; ++x) {
-						if (x * x + y * y <= 4) {
-							int px = footX + x;
-							int py = footY + y;
-							if (px >= 0 && px < avatarW && py >= 0 && py < avatarH) {
-								Uint32* pixels = (Uint32*)surf->pixels;
-								pixels[py * pitch + px] = SDL_MapRGB(surf->format, 60, 0, 60);
-							}
-						}
-					}
-				}
-			} else {
-				SDL_Rect leftArm = { 30, 70 + (frame == 0 ? 0 : 10), 15, 60 };
-				SDL_Rect rightArm = { 75, 70 + (frame == 1 ? 0 : 10), 15, 60 };
-				SDL_FillRect(surf, &leftArm, SDL_MapRGB(surf->format, outfit.r, outfit.g, outfit.b));
-				SDL_FillRect(surf, &rightArm, SDL_MapRGB(surf->format, outfit.r, outfit.g, outfit.b));
-				SDL_Rect leftLeg = { 45, 140 + (frame == 1 ? 0 : 10), 10, 20 };
-				SDL_Rect rightLeg = { 65, 140 + (frame == 0 ? 0 : 10), 10, 20 };
-				SDL_FillRect(surf, &leftLeg, SDL_MapRGB(surf->format, 60, 0, 60));
-				SDL_FillRect(surf, &rightLeg, SDL_MapRGB(surf->format, 60, 0, 60));
 			}
+		} else {
+			// Robe sleeves (wide, matching robe)
+			SDL_Rect leftSleeve = { 30, 80 + (frame == 0 ? 0 : 10), 18, 40 };
+			SDL_Rect rightSleeve = { 72, 80 + (frame == 1 ? 0 : 10), 18, 40 };
+			SDL_FillRect(surf, &leftSleeve, SDL_MapRGB(surf->format, outfit.r, outfit.g, outfit.b));
+			SDL_FillRect(surf, &rightSleeve, SDL_MapRGB(surf->format, outfit.r, outfit.g, outfit.b));
+			// Legs (under robe, boots)
+			SDL_Rect leftLeg = { 50, 150 + (frame == 1 ? 0 : 10), 10, 18 };
+			SDL_Rect rightLeg = { 70, 150 + (frame == 0 ? 0 : 10), 10, 18 };
+			SDL_FillRect(surf, &leftLeg, SDL_MapRGB(surf->format, 60, 0, 60));
+			SDL_FillRect(surf, &rightLeg, SDL_MapRGB(surf->format, 60, 0, 60));
+		}
 		// Hat with tilt
 		int hatBaseX = 50 + hatTilt;
 		int hatBaseY = 15 + headBob;
