@@ -1,0 +1,7 @@
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/libpng/x64-windows-dbg/CMakeFiles/png_genfiles.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/libpng/x64-windows-dbg/CMakeFiles/png_shared.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/libpng/x64-windows-dbg/CMakeFiles/edit_cache.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/libpng/x64-windows-dbg/CMakeFiles/rebuild_cache.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/libpng/x64-windows-dbg/CMakeFiles/list_install_components.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/libpng/x64-windows-dbg/CMakeFiles/install.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/libpng/x64-windows-dbg/CMakeFiles/install/local.dir

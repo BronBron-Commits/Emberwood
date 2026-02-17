@@ -1,0 +1,9 @@
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/lib/SDL2_ttf.lib
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/bin/SDL2_ttf.dll
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/include/SDL2/SDL_ttf.h
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/cmake/SDL2_ttfConfig.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/cmake/SDL2_ttfConfigVersion.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/cmake/SDL2_ttf-shared-targets.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/cmake/SDL2_ttf-shared-targets-release.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/lib/pkgconfig/SDL2_ttf.pc
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/sdl2-ttf_x64-windows/share/licenses/SDL2_ttf/LICENSE.txt

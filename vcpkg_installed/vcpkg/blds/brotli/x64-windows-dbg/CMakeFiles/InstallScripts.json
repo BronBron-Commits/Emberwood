@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/brotli/x64-windows-dbg/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include "entities/AOEEffect.h"
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -12,7 +13,79 @@
 
 #include "CharacterModule.h"
 
+
 #include <sstream>
+
+// --- Boomerang Energy Bolt State ---
+struct BoomerangBolt {
+	float x, y;
+	float vx, vy;
+	float startX, startY;
+	float targetX, targetY;
+	float traveled;
+	bool returning;
+	bool active;
+	BoomerangBolt(float sx, float sy, float tx, float ty)
+		: x(sx), y(sy), startX(sx), startY(sy), targetX(tx), targetY(ty), traveled(0), returning(false), active(true) {
+		float dx = tx - sx;
+		float dy = ty - sy;
+		float dist = std::sqrt(dx*dx + dy*dy);
+		float maxDist = 420.0f;
+		if (dist > maxDist) { dx *= maxDist/dist; dy *= maxDist/dist; }
+		float speed = 18.0f; // pixels per frame
+		float mag = std::sqrt(dx*dx + dy*dy);
+		vx = dx / mag * speed;
+		vy = dy / mag * speed;
+	}
+	void update(float playerX, float playerY) {
+		if (!active) return;
+		if (!returning) {
+			x += vx;
+			y += vy;
+			traveled += std::sqrt(vx*vx + vy*vy);
+			// If reached or passed max distance, start returning
+			float dx = x - startX;
+			float dy = y - startY;
+			float maxDist = 420.0f;
+			if (traveled >= maxDist) {
+				returning = true;
+			}
+		} else {
+			// Home in on player
+			float dx = playerX - x;
+			float dy = playerY - y;
+			float dist = std::sqrt(dx*dx + dy*dy);
+			float speed = 22.0f;
+			if (dist < speed) {
+				active = false;
+				return;
+			}
+			vx = dx / dist * speed;
+			vy = dy / dist * speed;
+			x += vx;
+			y += vy;
+		}
+	}
+	void render(SDL_Renderer* renderer, int camX, int camY, int windowW, int windowH) {
+		if (!active) return;
+		int cx = (int)x - camX;
+		int cy = (int)y - camY;
+		int r = 18;
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_ADD);
+		for (int ring = r; ring > r-6; --ring) {
+			SDL_SetRenderDrawColor(renderer, 60, 220, 255, 180);
+			for (int deg = 0; deg < 360; ++deg) {
+				float rad = deg * 3.14159265358979323846f / 180.0f;
+				int px = cx + (int)(ring * std::cos(rad));
+				int py = cy + (int)(ring * std::sin(rad));
+				if (px >= 0 && py >= 0 && px < windowW && py < windowH)
+					SDL_RenderDrawPoint(renderer, px, py);
+			}
+		}
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	}
+};
+static std::vector<BoomerangBolt> boomerangBolts;
 
 #ifndef HAS_STD_TO_STRING
 #if __cplusplus < 201103L || (defined(_MSC_VER) && _MSC_VER < 1800)
@@ -38,23 +111,35 @@ struct DustParticle {
 	int life;
 };
 
-struct Fireball {
-	float x, y;
-	float vx, vy;
-	int life;
-	float size = 1.0f;
-	bool exploding = false;
-	int explosionFrame = 0;
-};
+
 
 
 
 int main(int argc, char* argv[]) {
+			// League of Legends style right-click walk
+			bool hasWalkTarget = false;
+			float walkTargetX = 0.0f, walkTargetY = 0.0f;
+
+			// --- Floating X indicator state ---
+			bool showWalkX = false;
+			float walkX = 0.0f, walkY = 0.0f;
+			float walkXAnimOffset = 0.0f;
+			int walkXAnimTimer = 0;
+			const int walkXAnimDuration = 36; // ~0.3s at 120fps
+
+			// --- Minimap walk target indicator ---
+			bool showMinimapX = false;
+			float minimapX = 0.0f, minimapY = 0.0f;
 		// --- Frame timing for 120fps ---
 		const int targetFPS = 120;
 		const Uint32 frameDelay = 1000 / targetFPS;
 		Uint32 frameStart = 0;
 		Uint32 frameTime = 0;
+// --- Wizard Q Attack State ---
+bool wizardQAttack = false;
+int wizardQAttackTimer = 0;
+const int wizardQAttackDuration = 18; // frames (about 0.15s at 120fps)
+std::vector<AOEEffect> aoeEffects;
 	// --- No frame cap: run as fast as possible ---
 	// (Removed frame timing and delay logic)
 
@@ -78,14 +163,8 @@ int main(int argc, char* argv[]) {
 	int playerMaxHealth = 100;
 	int playerEnergy = 80;
 	int playerMaxEnergy = 100;
-	const int fireballEnergyCost = 40;
-	// At 120fps, halve per-frame regen to keep same per-second rate
-	const float energyRegenPerFrame = 1.5f; // 1.5 * 120 = 180 per second at 120fps
-	float playerEnergyF = (float)playerEnergy;
-	// --- Fireball cooldown ---
-	// At 120fps, halve cooldown to keep same real-time cooldown
-	const Uint32 fireballCooldownMs = 250; // 0.25 seconds at 120fps
-	Uint32 lastFireballTime = 0;
+	// Energy regeneration per frame
+	const int energyRegenPerFrame = 2; // integer regen per frame
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 		std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
 		return 1;
@@ -388,7 +467,7 @@ int main(int argc, char* argv[]) {
 	int playerIndex = 0;
 
 	const float accel = 2.2f;
-	const float maxSpeed = 15.0f;
+	const float maxSpeed = 4.0f; // Slower right-click walk speed
 	const float friction = 0.92f;
 	const int margin = 100;
 	int facing = 0;
@@ -396,7 +475,7 @@ int main(int argc, char* argv[]) {
 	int walkCounter = 0;
 	// At 120fps, double frame delay to keep animation speed the same
 	const int walkFrameDelay = 20;
-	std::vector<Fireball> fireballs;
+	// Removed fireball vector
 	std::vector<DustParticle> dustParticles;
 	int dustEmitCooldown = 0;
 
@@ -430,20 +509,77 @@ int main(int argc, char* argv[]) {
 		}
 
 		// --- Input and update for all characters ---
-		bool up = false, down = false, left = false, right = false;
+		// WASD movement removed
 		while (SDL_PollEvent(&event)) {
+						// Right-click to set walk target
+						if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == SDL_BUTTON_RIGHT) {
+							int mx = event.button.x;
+							int my = event.button.y;
+							// Convert screen to world coordinates
+							walkTargetX = mx + camX;
+							walkTargetY = my + camY;
+							hasWalkTarget = true;
+							// Show floating X indicator
+							showWalkX = true;
+							walkX = walkTargetX;
+							walkY = walkTargetY;
+							walkXAnimOffset = 0.0f;
+							walkXAnimTimer = walkXAnimDuration;
+							// Show minimap X
+							showMinimapX = true;
+							minimapX = walkTargetX;
+							minimapY = walkTargetY;
+								// --- Floating X animation update ---
+								if (showWalkX) {
+									walkXAnimOffset -= 1.2f; // Move up each frame
+									walkXAnimTimer--;
+									if (walkXAnimTimer <= 0) {
+										showWalkX = false;
+									}
+								}
+								// --- Render floating X indicator ---
+								if (showWalkX) {
+									SDL_Rect xRect = cameraTransform(walkX - 12, walkY - 12 + walkXAnimOffset, 24, 24);
+									// Draw a simple red 'X'
+									SDL_SetRenderDrawColor(renderer, 255, 40, 40, 255);
+									for (int i = 0; i < 4; ++i) {
+										SDL_RenderDrawLine(renderer, xRect.x + 3 + i, xRect.y + 3, xRect.x + xRect.w - 4 - i, xRect.y + xRect.h - 4);
+										SDL_RenderDrawLine(renderer, xRect.x + 3 + i, xRect.y + xRect.h - 4, xRect.x + xRect.w - 4 - i, xRect.y + 3);
+									}
+								}
+						}
 			if (event.type == SDL_QUIT) {
 				running = false;
 			} else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
 				bool pressed = (event.type == SDL_KEYDOWN);
 				switch (event.key.keysym.sym) {
+															// Wizard W attack: boomerang energy bolt
+															case SDLK_w:
+																if (pressed && playerIndex == 0) {
+																	// Only allow one boomerang at a time
+																	boomerangBolts.clear();
+																	float boltX = characters[playerIndex].x + avatarW / 2;
+																	float boltY = characters[playerIndex].y + avatarH / 2;
+																	// Throw forward in facing direction
+																	float dx = 0.0f, dy = 0.0f;
+																	switch (characters[playerIndex].facing) {
+																		case 0: dx = 1.0f; break; // right
+																		case 1: dx = -1.0f; break; // left
+																		case 2: dy = -1.0f; break; // up
+																		case 3: dy = 1.0f; break; // down
+																	}
+																	float dist = 420.0f;
+																	float tx = boltX + dx * dist;
+																	float ty = boltY + dy * dist;
+																	// Debug: print boomerang start and target
+																	std::cout << "Boomerang thrown from (" << boltX << ", " << boltY << ") to (" << tx << ", " << ty << ")\n";
+																	boomerangBolts.emplace_back(boltX, boltY, tx, ty);
+																}
+																break;
 										case SDLK_g:
 											if (pressed) showGrid = !showGrid;
 											break;
-					case SDLK_w: up = pressed; break;
-					case SDLK_s: down = pressed; break;
-					case SDLK_a: left = pressed; break;
-					case SDLK_d: right = pressed; break;
+					// WASD movement removed
 					// Switch to Wizard (index 0)
 					case SDLK_1:
 						if (pressed) playerIndex = 0;
@@ -481,67 +617,88 @@ int main(int argc, char* argv[]) {
 							}
 						}
 						break;
+
+					// Wizard Q attack
+					      case SDLK_q:
+						   if (pressed && playerIndex == 0 && !wizardQAttack) {
+							   wizardQAttack = true;
+							   wizardQAttackTimer = wizardQAttackDuration;
+							   // Ensure only one AOE exists at a time
+							   aoeEffects.clear();
+							   float aoeX = characters[playerIndex].x + avatarW / 2;
+							   float aoeY = characters[playerIndex].y + avatarH / 2;
+							   aoeEffects.emplace_back(aoeX, aoeY, wizardQAttackDuration, 48);
+						   }
+						   break;
 				}
 				if (pressed && event.key.keysym.sym == SDLK_SPACE) {
-					// Shoot fireball if enough energy and cooldown expired
-					Uint32 now = SDL_GetTicks();
-					if (now - lastFireballTime >= fireballCooldownMs) {
-						Character& player = characters[playerIndex];
-						if (playerEnergy >= fireballEnergyCost) {
-							float fx = player.x + avatarW / 2;
-							float fy = player.y + avatarH / 2;
-							float fireballSpeed = 16.0f;
-							float vx = 0, vy = 0;
-							if (facing == 0) { vx = fireballSpeed; }
-							else if (facing == 1) { vx = -fireballSpeed; }
-							else if (facing == 2) { vy = -fireballSpeed; }
-							else if (facing == 3) { vy = fireballSpeed; }
-							Fireball fb = {fx, fy, vx, vy, 60, 1.0f, false, 0};
-							fireballs.push_back(fb);
-							playerEnergy -= fireballEnergyCost;
-							playerEnergyF -= fireballEnergyCost;
-							if (playerEnergy < 0) playerEnergy = 0;
-							if (playerEnergyF < 0) playerEnergyF = 0;
-							lastFireballTime = now;
-						}
-					}
+					// (Fireball shooting removed)
 				}
 			}
 		}
-		// Movement input (ice/inertia) for player character
-		const Uint8* keystate = SDL_GetKeyboardState(NULL);
-		up = keystate[SDL_SCANCODE_W];
-		down = keystate[SDL_SCANCODE_S];
-		left = keystate[SDL_SCANCODE_A];
-		right = keystate[SDL_SCANCODE_D];
-		Character& player = characters[playerIndex];
-		if (up)    { player.vy -= accel; facing = 2; }
-		if (down)  { player.vy += accel; facing = 3; }
-		if (left)  { player.vx -= accel; facing = 1; }
-		if (right) { player.vx += accel; facing = 0; }
-		// Clamp velocity
-		float speedVal = std::sqrt(player.vx * player.vx + player.vy * player.vy);
-		if (speedVal > maxSpeed) {
-			player.vx = (player.vx / speedVal) * maxSpeed;
-			player.vy = (player.vy / speedVal) * maxSpeed;
-		}
-		// Apply velocity
-		player.x += player.vx;
-		player.y += player.vy;
-		// Apply friction
-		player.vx *= friction;
-		player.vy *= friction;
+					// League of Legends style right-click walk
+					Character& player = characters[playerIndex];
 
-		// Animation: always advance frame (persistent animation)
-		walkCounter++;
-		if (walkCounter >= walkFrameDelay) {
-			walkCounter = 0;
-			walkFrame = 1 - walkFrame;
+					// --- Update boomerang bolts (W attack) ---
+					float playerCenterX = player.x + avatarW / 2;
+					float playerCenterY = player.y + avatarH / 2;
+					for (auto& bolt : boomerangBolts) bolt.update(playerCenterX, playerCenterY);
+					boomerangBolts.erase(std::remove_if(boomerangBolts.begin(), boomerangBolts.end(), [](const BoomerangBolt& b){ return !b.active; }), boomerangBolts.end());
+
+					// Instantly trigger AOE attack effect if wizardQAttack was just set
+					static bool aoeTriggered = false;
+					static float aoeX = 0.0f, aoeY = 0.0f;
+					if (wizardQAttack && !aoeTriggered) {
+							aoeX = player.x + avatarW / 2;
+							aoeY = player.y + avatarH / 2;
+							std::cout << "AOE attack triggered at (" << aoeX << ", " << aoeY << ")" << std::endl;
+							aoeTriggered = true;
+					}
+				if (!wizardQAttack) aoeTriggered = false;
+				// (AOE rendering moved below grass rendering)
+		if (hasWalkTarget) {
+			float dx = walkTargetX - (player.x + avatarW / 2);
+			float dy = walkTargetY - (player.y + avatarH / 2);
+			float dist = std::sqrt(dx * dx + dy * dy);
+			if (dist > 6.0f) {
+				float move = std::min(maxSpeed, dist);
+				float mx = dx / dist * move;
+				float my = dy / dist * move;
+				player.x += mx;
+				player.y += my;
+				// Set facing only if actually moving
+				if (std::abs(mx) > std::abs(my)) {
+					player.facing = (mx > 0) ? 0 : 1;
+				} else if (std::abs(my) > 0.01f) {
+					player.facing = (my > 0) ? 3 : 2;
+				}
+			} else {
+				hasWalkTarget = false;
+			}
+		}
+
+		// Animation: always advance wizard walk frame if wizard is moving
+		float wizardMoveSpeed = std::sqrt(characters[0].vx * characters[0].vx + characters[0].vy * characters[0].vy);
+		if (wizardMoveSpeed > 1.0f) {
+			walkCounter++;
+			if (walkCounter >= walkFrameDelay) {
+				walkCounter = 0;
+				walkFrame = 1 - walkFrame;
+			}
+		} else {
+			walkFrame = 0; // idle pose
+		}
+
+		// Q attack timer update
+		if (wizardQAttack) {
+			wizardQAttackTimer--;
+			if (wizardQAttackTimer <= 0) {
+				wizardQAttack = false;
+			}
 		}
 
 		// Emit dust trail if moving
-		float moveSpeed = std::sqrt(player.vx * player.vx + player.vy * player.vy);
-		if (moveSpeed > 1.0f && dustEmitCooldown <= 0) {
+		if (maxSpeed > 1.0f && dustEmitCooldown <= 0) {
 			// Emit 4-6 much larger particles per frame from feet
 			int numParticles = 4 + (rand() % 3);
 			for (int i = 0; i < numParticles; ++i) {
@@ -559,6 +716,7 @@ int main(int argc, char* argv[]) {
 			dustEmitCooldown--;
 		}
 
+
 		// Update dust particles
 		for (auto& d : dustParticles) {
 			d.x += d.vx;
@@ -569,23 +727,12 @@ int main(int argc, char* argv[]) {
 		}
 		dustParticles.erase(std::remove_if(dustParticles.begin(), dustParticles.end(), [](const DustParticle& d) { return d.life <= 0; }), dustParticles.end());
 
-		// Update fireballs (grow and explode)
-		for (auto& f : fireballs) {
-			if (!f.exploding) {
-				f.x += f.vx;
-				f.y += f.vy;
-				f.size += 0.22f; // grow as it travels
-				f.life--;
-				if (f.life <= 0) {
-					f.exploding = true;
-					f.explosionFrame = 0;
-				}
-			} else {
-				f.explosionFrame++;
-			}
+		// Update and remove inactive AOEs
+		for (auto& aoe : aoeEffects) {
+			aoe.update();
 		}
-		// Remove fireballs after explosion animation
-		fireballs.erase(std::remove_if(fireballs.begin(), fireballs.end(), [](const Fireball& f) { return f.exploding && f.explosionFrame > 18; }), fireballs.end());
+		aoeEffects.erase(std::remove_if(aoeEffects.begin(), aoeEffects.end(), [](const AOEEffect& aoe) { return !aoe.active; }), aoeEffects.end());
+		// (Fireball update removed)
 
 		// Camera follows player if near edge of the screen, but clamps to world bounds
 		int spriteW = avatarW;
@@ -758,6 +905,11 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
+
+		// --- Render boomerang bolts (above grass, below AOE) ---
+		for (auto& bolt : boomerangBolts) bolt.render(renderer, camX, camY, windowW, windowH);
+		// (AOE rendering moved to top layer)
+
 		// --- Bushes only (trees removed) ---
 		int campfireCenterX = worldW / 2;
 		int campfireCenterY = worldH / 2 + 144;
@@ -859,63 +1011,7 @@ int main(int argc, char* argv[]) {
 
 
 		// (Castle rendering removed)
-		// Stylized fireballs: grow and explode (Kamehameha style)
-		for (const auto& f : fireballs) {
-			float t = SDL_GetTicks() / 1000.0f;
-			float radius = f.size * 18.0f;
-			if (!f.exploding) {
-				SDL_Rect fbRect = cameraTransform(f.x - radius, f.y - radius, radius * 2, radius * 2);
-				// Optimize: skip every other pixel for perf
-				for (int y = 0; y < fbRect.h; y += 2) {
-					for (int x = 0; x < fbRect.w; x += 2) {
-						int px = fbRect.x + x;
-						int py = fbRect.y + y;
-						if (px < 0 || px >= windowW || py < 0 || py >= windowH) continue;
-						float dx = x - fbRect.w / 2 + 0.5f;
-						float dy = y - fbRect.h / 2 + 0.5f;
-						float dist = std::sqrt(dx*dx + dy*dy);
-						float norm = dist / (fbRect.w / 2);
-						if (norm > 1.0f) continue;
-						float pulse = 0.7f + 0.3f * std::sin(t * 4.0f + f.x + f.y);
-						Uint8 r = (Uint8)(200 + 55 * (1.0f - norm) * pulse);
-						Uint8 g = (Uint8)(40 + 30 * (1.0f - norm) * pulse);
-						Uint8 b = (Uint8)(255 - 80 * norm * pulse);
-						Uint8 a = (Uint8)(220 * (1.0f - norm * norm));
-						SDL_SetRenderDrawColor(renderer, r, g, b, a);
-						SDL_RenderDrawPoint(renderer, px, py);
-					}
-				}
-			} else {
-				// Explosion: expanding, fading ring
-				float explosionProgress = f.explosionFrame / 18.0f;
-				float maxExplosion = radius * 2.2f;
-				float minExplosion = radius * 1.1f;
-				float explosionRadius = minExplosion + (maxExplosion - minExplosion) * explosionProgress;
-				SDL_Rect expRect = cameraTransform(f.x - explosionRadius, f.y - explosionRadius, explosionRadius * 2, explosionRadius * 2);
-				// Optimize: skip every other pixel for perf
-				for (int y = 0; y < expRect.h; y += 2) {
-					for (int x = 0; x < expRect.w; x += 2) {
-						int px = expRect.x + x;
-						int py = expRect.y + y;
-						if (px < 0 || px >= windowW || py < 0 || py >= windowH) continue;
-						float dx = x - expRect.w / 2 + 0.5f;
-						float dy = y - expRect.h / 2 + 0.5f;
-						float dist = std::sqrt(dx*dx + dy*dy);
-						float norm = dist / (expRect.w / 2);
-						// Draw a ring
-						if (norm > 0.7f && norm < 1.0f) {
-							float fade = 1.0f - explosionProgress;
-							Uint8 r = (Uint8)(255 * fade);
-							Uint8 g = (Uint8)(180 * fade);
-							Uint8 b = (Uint8)(255 * fade);
-							Uint8 a = (Uint8)(180 * fade * (1.0f - (norm - 0.7f) / 0.3f));
-							SDL_SetRenderDrawColor(renderer, r, g, b, a);
-							SDL_RenderDrawPoint(renderer, px, py);
-						}
-					}
-				}
-			}
-		}
+		// (Fireball rendering removed)
 		// Only render wizard's aura and particles if wizard is active
 		if (playerIndex == 0) {
 			// Render aura particles around player
@@ -962,6 +1058,12 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Render character shadow (ellipse) only for wizard
+				// --- Render AOE visual on top of everything ---
+				if (wizardQAttack) {
+					for (auto& aoe : aoeEffects) {
+						aoe.render(renderer, camX, camY, windowW, windowH);
+					}
+				}
 		SDL_Rect destRect = cameraTransform(player.x, player.y, avatarW, avatarH);
 		if (playerIndex == 0) {
 			int shadowW = avatarW * 0.7;
@@ -1059,14 +1161,39 @@ int main(int argc, char* argv[]) {
 				   SDL_RenderDrawLine(renderer, (int)hiltX1 + t, (int)hiltY1, (int)hiltX2 + t, (int)hiltY2);
 			   }
 		   } else {
-			// Wizard: use default sprite logic
-			if (facing == 2 && spriteBackTexture[walkFrame]) {
-				SDL_RenderCopy(renderer, spriteBackTexture[walkFrame], nullptr, &destRect);
-			} else if (facing == 3 && spriteFrontTexture[walkFrame]) {
-				SDL_RenderCopy(renderer, spriteFrontTexture[walkFrame], nullptr, &destRect);
-			} else if ((facing == 0 || facing == 1) && spriteSideTexture[walkFrame]) {
-				SDL_RendererFlip flip = (facing == 1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-				SDL_RenderCopyEx(renderer, spriteSideTexture[walkFrame], nullptr, &destRect, 0, nullptr, flip);
+			// Wizard: use default sprite logic, with Q attack animation (arm raise)
+			if (wizardQAttack && playerIndex == 0) {
+				// Draw Q attack animation: overlay a raised arm (simple rectangle or line)
+				if (player.facing == 2 && spriteBackTexture[walkFrame]) {
+					SDL_RenderCopy(renderer, spriteBackTexture[walkFrame], nullptr, &destRect);
+				} else if (player.facing == 3 && spriteFrontTexture[walkFrame]) {
+					SDL_RenderCopy(renderer, spriteFrontTexture[walkFrame], nullptr, &destRect);
+				} else if ((player.facing == 0 || player.facing == 1) && spriteSideTexture[walkFrame]) {
+					SDL_RendererFlip flip = (player.facing == 1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+					SDL_RenderCopyEx(renderer, spriteSideTexture[walkFrame], nullptr, &destRect, 0, nullptr, flip);
+				}
+				// Overlay: draw a raised arm (simple rectangle)
+				SDL_SetRenderDrawColor(renderer, 255, 220, 180, 255);
+				SDL_Rect armRect;
+				if (player.facing == 0) { // right
+					armRect = { destRect.x + 90, destRect.y + 60, 18, 38 };
+				} else if (player.facing == 1) { // left
+					armRect = { destRect.x + 12, destRect.y + 60, 18, 38 };
+				} else if (player.facing == 3) { // front
+					armRect = { destRect.x + 60 - 28, destRect.y + 40, 18, 38 };
+				} else { // back
+					armRect = { destRect.x + 60 - 9, destRect.y + 40, 18, 38 };
+				}
+				SDL_RenderFillRect(renderer, &armRect);
+			} else {
+				if (player.facing == 2 && spriteBackTexture[walkFrame]) {
+					SDL_RenderCopy(renderer, spriteBackTexture[walkFrame], nullptr, &destRect);
+				} else if (player.facing == 3 && spriteFrontTexture[walkFrame]) {
+					SDL_RenderCopy(renderer, spriteFrontTexture[walkFrame], nullptr, &destRect);
+				} else if ((player.facing == 0 || player.facing == 1) && spriteSideTexture[walkFrame]) {
+					SDL_RendererFlip flip = (player.facing == 1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+					SDL_RenderCopyEx(renderer, spriteSideTexture[walkFrame], nullptr, &destRect, 0, nullptr, flip);
+				}
 			}
 		}
 		// --- Mini Map Rendering ---
@@ -1109,20 +1236,23 @@ int main(int argc, char* argv[]) {
 		SDL_Rect playerDot = { playerMiniX - 3, playerMiniY - 3, 7, 7 };
 		SDL_RenderFillRect(renderer, &playerDot);
 
-		// Optionally: draw fireballs on minimap
-		SDL_SetRenderDrawColor(renderer, 180, 0, 255, 200);
-		for (const auto& f : fireballs) {
-			int fx = miniMapX + (int)(f.x * scaleX);
-			int fy = miniMapY + (int)(f.y * scaleY);
-			SDL_Rect fbDot = { fx - 2, fy - 2, 4, 4 };
-			SDL_RenderFillRect(renderer, &fbDot);
+		// Draw walk target X on minimap
+		if (showMinimapX) {
+			int xMini = miniMapX + (int)(minimapX * scaleX);
+			int yMini = miniMapY + (int)(minimapY * scaleY);
+			SDL_SetRenderDrawColor(renderer, 255, 40, 40, 255);
+			for (int i = 0; i < 2; ++i) {
+				SDL_RenderDrawLine(renderer, xMini - 7 + i, yMini - 7, xMini + 7 - i, yMini + 7);
+				SDL_RenderDrawLine(renderer, xMini - 7 + i, yMini + 7, xMini + 7 - i, yMini - 7);
+			}
 		}
 
+		// (Fireball minimap rendering removed)
+
 		// Energy regeneration
-		if (playerEnergyF < playerMaxEnergy) {
-			playerEnergyF += energyRegenPerFrame;
-			if (playerEnergyF > playerMaxEnergy) playerEnergyF = (float)playerMaxEnergy;
-			playerEnergy = (int)playerEnergyF;
+		if (playerEnergy < playerMaxEnergy) {
+			playerEnergy += energyRegenPerFrame;
+			if (playerEnergy > playerMaxEnergy) playerEnergy = playerMaxEnergy;
 		}
 
 		// --- HUD Rendering ---
@@ -1144,7 +1274,7 @@ int main(int argc, char* argv[]) {
 
 		// Energy bar (below health)
 		int energyBarX = 32, energyBarY = 32 + hudBarH + 12;
-		float energyFrac = playerEnergyF / playerMaxEnergy;
+		float energyFrac = (float)playerEnergy / playerMaxEnergy;
 		SDL_Rect energyBack = {energyBarX, energyBarY, hudBarW, hudBarH};
 		SDL_Rect energyFill = {energyBarX + hudBarPad, energyBarY + hudBarPad, (int)((hudBarW - 2 * hudBarPad) * energyFrac), hudBarH - 2 * hudBarPad};
 		// Background

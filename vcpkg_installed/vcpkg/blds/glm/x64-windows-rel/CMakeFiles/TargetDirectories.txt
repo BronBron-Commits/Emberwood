@@ -1,0 +1,16 @@
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/CMakeFiles/uninstall.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/CMakeFiles/package.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/CMakeFiles/package_source.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/CMakeFiles/edit_cache.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/CMakeFiles/rebuild_cache.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/CMakeFiles/list_install_components.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/CMakeFiles/install.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/CMakeFiles/install/local.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/CMakeFiles/glm.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/CMakeFiles/package.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/CMakeFiles/package_source.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/CMakeFiles/edit_cache.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/CMakeFiles/rebuild_cache.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/CMakeFiles/list_install_components.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/CMakeFiles/install.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/CMakeFiles/install/local.dir

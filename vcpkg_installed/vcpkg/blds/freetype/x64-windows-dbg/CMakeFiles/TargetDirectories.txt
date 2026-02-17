@@ -1,0 +1,8 @@
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/freetype/x64-windows-dbg/CMakeFiles/freetype.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/freetype/x64-windows-dbg/CMakeFiles/package.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/freetype/x64-windows-dbg/CMakeFiles/package_source.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/freetype/x64-windows-dbg/CMakeFiles/edit_cache.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/freetype/x64-windows-dbg/CMakeFiles/rebuild_cache.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/freetype/x64-windows-dbg/CMakeFiles/list_install_components.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/freetype/x64-windows-dbg/CMakeFiles/install.dir
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/freetype/x64-windows-dbg/CMakeFiles/install/local.dir

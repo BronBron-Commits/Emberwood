@@ -1,0 +1,11 @@
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/libpng16d.lib
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/bin/libpng16d.dll
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/pkgconfig/libpng16.pc
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/libpng/libpng16.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/libpng/libpng16-debug.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/libpng16d.lib
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/bin/libpng16d.dll
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/cmake/PNG/PNGTargets.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/cmake/PNG/PNGTargets-debug.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/cmake/PNG/PNGConfig.cmake
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/libpng_x64-windows/debug/lib/cmake/PNG/PNGConfigVersion.cmake

@@ -1,0 +1,9 @@
+{
+  "name": "emberwood",
+  "version": "0.1.0",
+  "dependencies": [
+    "glm",
+    "sdl2",
+    "sdl2-ttf"
+  ]
+}

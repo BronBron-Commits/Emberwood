@@ -348,6 +348,7 @@ CMakeFiles/Emberwood.dir/src/main.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h \
  C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_algorithm_defs.h \
  C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
+ C:\Projects\Emberwood\src\entities/AOEEffect.h \
  C:/msys64/mingw64/include/c++/15.2.0/vector \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_uninitialized.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_vector.h \

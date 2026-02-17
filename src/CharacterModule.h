@@ -19,7 +19,7 @@ struct Character {
     CharacterColor mainColor;
     CharacterColor accentColor;
     std::string name;
-    // Add more fields as needed
+    int facing = 0; // 0=right, 1=left, 2=up, 3=down
 };
 
 // Creates a new character with default values

@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/cmake_install.cmake",
+		"C:/Projects/Emberwood/vcpkg_installed/vcpkg/blds/glm/x64-windows-rel/glm/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

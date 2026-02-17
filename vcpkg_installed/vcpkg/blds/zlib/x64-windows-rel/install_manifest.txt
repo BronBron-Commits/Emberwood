@@ -1,0 +1,4 @@
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/zlib_x64-windows/lib/zlib.lib
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/zlib_x64-windows/bin/zlib1.dll
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/zlib_x64-windows/include/zconf.h
+C:/Projects/Emberwood/vcpkg_installed/vcpkg/pkgs/zlib_x64-windows/include/zlib.h
