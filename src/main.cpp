@@ -244,9 +244,12 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Character state
-	int charX = windowW / 2;
-	int charY = windowH / 2;
-	const int speed = 5;
+	float charX = windowW / 2.0f;
+	float charY = windowH / 2.0f;
+	float charVX = 0.0f, charVY = 0.0f;
+	const float accel = 1.2f; // acceleration per key press
+	const float maxSpeed = 8.0f;
+	const float friction = 0.92f; // lower = more slippery
 	// Removed zoom variables
 	const int margin = 100;
 	int facing = 0; // 0=right, 1=left, 2=up, 3=down
@@ -258,29 +261,19 @@ int main(int argc, char* argv[]) {
 	bool running = true;
 	SDL_Event event;
 	while (running) {
+		bool up = false, down = false, left = false, right = false;
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				running = false;
-			} else if (event.type == SDL_KEYDOWN) {
+			} else if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {
+				bool pressed = (event.type == SDL_KEYDOWN);
 				switch (event.key.keysym.sym) {
-					case SDLK_w:
-						charY -= speed;
-						facing = 2;
-						break;
-					case SDLK_s:
-						charY += speed;
-						facing = 3;
-						break;
-					case SDLK_a:
-						charX -= speed;
-						facing = 1;
-						break;
-					case SDLK_d:
-						charX += speed;
-						facing = 0;
-						break;
+					case SDLK_w: up = pressed; break;
+					case SDLK_s: down = pressed; break;
+					case SDLK_a: left = pressed; break;
+					case SDLK_d: right = pressed; break;
 				}
-				if (event.key.keysym.sym == SDLK_SPACE) {
+				if (pressed && event.key.keysym.sym == SDLK_SPACE) {
 					// Shoot fireball
 					float fx = charX + avatarW / 2;
 					float fy = charY + avatarH / 2;
@@ -294,7 +287,29 @@ int main(int argc, char* argv[]) {
 				}
 			}
 			// Removed mouse wheel zoom event
-		} // <-- MISSING BRACE FIXED
+		}
+		// Movement input (ice/inertia)
+		const Uint8* keystate = SDL_GetKeyboardState(NULL);
+		up = keystate[SDL_SCANCODE_W];
+		down = keystate[SDL_SCANCODE_S];
+		left = keystate[SDL_SCANCODE_A];
+		right = keystate[SDL_SCANCODE_D];
+		if (up)    { charVY -= accel; facing = 2; }
+		if (down)  { charVY += accel; facing = 3; }
+		if (left)  { charVX -= accel; facing = 1; }
+		if (right) { charVX += accel; facing = 0; }
+		// Clamp velocity
+		float speedVal = std::sqrt(charVX * charVX + charVY * charVY);
+		if (speedVal > maxSpeed) {
+			charVX = (charVX / speedVal) * maxSpeed;
+			charVY = (charVY / speedVal) * maxSpeed;
+		}
+		// Apply velocity
+		charX += charVX;
+		charY += charVY;
+		// Apply friction
+		charVX *= friction;
+		charVY *= friction;
 		// Animation: always advance frame (persistent animation)
 		walkCounter++;
 		if (walkCounter >= walkFrameDelay) {
