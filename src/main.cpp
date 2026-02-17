@@ -50,6 +50,13 @@ struct Fireball {
 
 
 int main(int argc, char* argv[]) {
+		// --- Frame timing for 120fps ---
+		const int targetFPS = 120;
+		const Uint32 frameDelay = 1000 / targetFPS;
+		Uint32 frameStart = 0;
+		Uint32 frameTime = 0;
+	// --- No frame cap: run as fast as possible ---
+	// (Removed frame timing and delay logic)
 
 	bool showGrid = true;
 	// --- FPS display state ---
@@ -72,10 +79,12 @@ int main(int argc, char* argv[]) {
 	int playerEnergy = 80;
 	int playerMaxEnergy = 100;
 	const int fireballEnergyCost = 40;
-	const float energyRegenPerFrame = 3.0f; // Even faster regen (about 180 per second at 60fps)
+	// At 120fps, halve per-frame regen to keep same per-second rate
+	const float energyRegenPerFrame = 1.5f; // 1.5 * 120 = 180 per second at 120fps
 	float playerEnergyF = (float)playerEnergy;
 	// --- Fireball cooldown ---
-	const Uint32 fireballCooldownMs = 500; // 0.5 seconds
+	// At 120fps, halve cooldown to keep same real-time cooldown
+	const Uint32 fireballCooldownMs = 250; // 0.25 seconds at 120fps
 	Uint32 lastFireballTime = 0;
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 		std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
@@ -98,7 +107,7 @@ int main(int argc, char* argv[]) {
 
 		// (zoneWidth is now fixed to 640 for debugging)
 
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	if (!renderer) {
 		std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
 		SDL_DestroyWindow(window);
@@ -385,7 +394,8 @@ int main(int argc, char* argv[]) {
 	int facing = 0;
 	int walkFrame = 0;
 	int walkCounter = 0;
-	const int walkFrameDelay = 10;
+	// At 120fps, double frame delay to keep animation speed the same
+	const int walkFrameDelay = 20;
 	std::vector<Fireball> fireballs;
 	std::vector<DustParticle> dustParticles;
 	int dustEmitCooldown = 0;
@@ -393,6 +403,8 @@ int main(int argc, char* argv[]) {
 	bool running = true;
 	SDL_Event event;
 	while (running) {
+				frameStart = SDL_GetTicks();
+			// No frame timing: run loop as fast as possible
 		// Update window size in case of resize/fullscreen
 		SDL_GetWindowSize(window, &windowW, &windowH);
 
@@ -1152,6 +1164,12 @@ int main(int argc, char* argv[]) {
 		}
 
 		SDL_RenderPresent(renderer);
+
+		// --- Frame cap for 120fps ---
+		frameTime = SDL_GetTicks() - frameStart;
+		if (frameTime < frameDelay) {
+			SDL_Delay(frameDelay - frameTime);
+		}
 	}
 
 	// Cleanup FPS resources after main loop
