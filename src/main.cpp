@@ -1,12 +1,29 @@
-#include <algorithm>
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 #include <vector>
+
+#include <sstream>
+
+// Fallback for std::to_string on older compilers
+#ifndef HAS_STD_TO_STRING
+#if __cplusplus < 201103L || (defined(_MSC_VER) && _MSC_VER < 1800)
+namespace std {
+	template <typename T>
+	std::string to_string(const T& value) {
+		std::ostringstream os;
+		os << value;
+		return os.str();
+	}
+}
+#endif
+#endif
 
 
 
@@ -29,6 +46,20 @@ struct Fireball {
 
 
 int main(int argc, char* argv[]) {
+	// --- FPS display state ---
+	TTF_Init();
+	TTF_Font* fpsFont = TTF_OpenFont("assets/fonts/DejaVuSans.ttf", 18);
+	if (!fpsFont) {
+		std::cerr << "Failed to load font for FPS: " << TTF_GetError() << std::endl;
+		TTF_Quit();
+		return 1;
+	}
+	SDL_Color fpsColor = {255, 255, 255, 255};
+	Uint32 fpsLastTime = SDL_GetTicks();
+	int fpsFrames = 0;
+	float fpsValue = 0.0f;
+	SDL_Texture* fpsTexture = nullptr;
+	int fpsTextW = 0, fpsTextH = 0;
 	// --- HUD state ---
 	int playerHealth = 100;
 	int playerMaxHealth = 100;
@@ -47,9 +78,9 @@ int main(int argc, char* argv[]) {
 		SDL_Quit();
 		return 1;
 	}
-	int windowW = displayMode.w;
-	int windowH = displayMode.h;
-	SDL_Window* window = SDL_CreateWindow("Emberwood", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowW, windowH, SDL_WINDOW_FULLSCREEN);
+	int windowW = 1280;
+	int windowH = 720;
+	SDL_Window* window = SDL_CreateWindow("Emberwood", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowW, windowH, SDL_WINDOW_SHOWN);
 	if (!window) {
 		std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 		SDL_Quit();
@@ -305,6 +336,26 @@ int main(int argc, char* argv[]) {
 	bool running = true;
 	SDL_Event event;
 	while (running) {
+		// --- FPS calculation ---
+		fpsFrames++;
+		Uint32 fpsCurrent = SDL_GetTicks();
+		if (fpsCurrent - fpsLastTime >= 500) { // update every 0.5s
+			fpsValue = fpsFrames * 1000.0f / (fpsCurrent - fpsLastTime);
+			fpsFrames = 0;
+			fpsLastTime = fpsCurrent;
+			if (fpsTexture) {
+				SDL_DestroyTexture(fpsTexture);
+				fpsTexture = nullptr;
+			}
+			std::string fpsText = "FPS: " + std::to_string((int)fpsValue);
+			SDL_Surface* fpsSurface = TTF_RenderText_Blended(fpsFont, fpsText.c_str(), fpsColor);
+			if (fpsSurface) {
+				fpsTexture = SDL_CreateTextureFromSurface(renderer, fpsSurface);
+				fpsTextW = fpsSurface->w;
+				fpsTextH = fpsSurface->h;
+				SDL_FreeSurface(fpsSurface);
+			}
+		}
 		bool up = false, down = false, left = false, right = false;
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
@@ -790,8 +841,25 @@ int main(int argc, char* argv[]) {
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderDrawRect(renderer, &energyBack);
 
+		// Draw FPS in bottom left
+		if (fpsTexture) {
+			SDL_Rect fpsRect = {8, windowH - fpsTextH - 8, fpsTextW, fpsTextH};
+			SDL_RenderCopy(renderer, fpsTexture, nullptr, &fpsRect);
+		}
+
 		SDL_RenderPresent(renderer);
 	}
+
+	// Cleanup FPS resources after main loop
+	if (fpsTexture) {
+		SDL_DestroyTexture(fpsTexture);
+		fpsTexture = nullptr;
+	}
+	if (fpsFont) {
+		TTF_CloseFont(fpsFont);
+		fpsFont = nullptr;
+	}
+	TTF_Quit();
 	for (int i = 0; i < 2; ++i) {
 		if (spriteSideTexture[i]) SDL_DestroyTexture(spriteSideTexture[i]);
 		if (spriteBackTexture[i]) SDL_DestroyTexture(spriteBackTexture[i]);
