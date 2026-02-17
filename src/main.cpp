@@ -856,16 +856,29 @@ int main(int argc, char* argv[]) {
 			   SDL_Rect faceRect = { destRect.x + 54, destRect.y + 56, 12, 8 };
 			   SDL_RenderFillRect(renderer, &faceRect);
 
-			   // Draw sword in right hand (held horizontally)
-			   int swordBaseX = destRect.x + 86 + 16; // right hand x + width
-			   int swordBaseY = destRect.y + 130;
+			   // Draw sword in right hand (pointing up at 45 degrees, thicker and longer)
+			   float swordLength = 60.0f;
+			   float swordAngle = -M_PI / 4.0f; // 45 degrees up
+			   float handX = destRect.x + 86 + 16;
+			   float handY = destRect.y + 130;
+			   float swordTipX = handX + swordLength * std::cos(swordAngle);
+			   float swordTipY = handY + swordLength * std::sin(swordAngle);
 			   SDL_SetRenderDrawColor(renderer, 200, 200, 220, 255);
-			   SDL_Rect swordRect = { swordBaseX, swordBaseY, 38, 8 };
-			   SDL_RenderFillRect(renderer, &swordRect);
-			   // Sword hilt (brown)
+			   // Draw a thick sword blade (5 lines for thickness)
+			   for (int t = -2; t <= 2; ++t) {
+				   SDL_RenderDrawLine(renderer, (int)handX + t, (int)handY, (int)swordTipX + t, (int)swordTipY);
+			   }
+			   // Sword hilt (brown, short line at base, also thicker)
+			   float hiltLen = 18.0f;
+			   float hiltAngle = swordAngle + M_PI/2.0f;
+			   float hiltX1 = handX - hiltLen/2 * std::cos(hiltAngle);
+			   float hiltY1 = handY - hiltLen/2 * std::sin(hiltAngle);
+			   float hiltX2 = handX + hiltLen/2 * std::cos(hiltAngle);
+			   float hiltY2 = handY + hiltLen/2 * std::sin(hiltAngle);
 			   SDL_SetRenderDrawColor(renderer, 120, 80, 40, 255);
-			   SDL_Rect hiltRect = { swordBaseX - 10, swordBaseY + 2, 12, 4 };
-			   SDL_RenderFillRect(renderer, &hiltRect);
+			   for (int t = -1; t <= 1; ++t) {
+				   SDL_RenderDrawLine(renderer, (int)hiltX1 + t, (int)hiltY1, (int)hiltX2 + t, (int)hiltY2);
+			   }
 		   } else {
 			// Wizard: use default sprite logic
 			if (facing == 2 && spriteBackTexture[walkFrame]) {
