@@ -733,71 +733,76 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
-		// Render aura particles around player
-		int auraParticleCount = 32;
-		float auraRadius = (avatarW + avatarH) / 4.0f + 10.0f;
-		float auraTime = SDL_GetTicks() / 1000.0f;
-		// Center the aura around the player's waist (about 70% down the sprite)
-		float waistY = player.y + avatarH * 0.7f;
-		float centerX = player.x + avatarW / 2;
-		for (int i = 0; i < auraParticleCount; ++i) {
-			float angle = (2.0f * M_PI * i) / auraParticleCount + auraTime * 0.8f;
-			float px = centerX + std::cos(angle) * auraRadius;
-			float py = waistY + std::sin(angle) * auraRadius;
-			SDL_Rect auraRect = cameraTransform(px - 3, py - 3, 6, 6);
-			// Animate color for a magical effect
-			Uint8 r = 120 + 80 * std::sin(angle + auraTime);
-			Uint8 g = 120 + 80 * std::sin(angle + auraTime + 2.0f);
-			Uint8 b = 255;
-			SDL_SetRenderDrawColor(renderer, r, g, b, 180);
-			SDL_RenderFillRect(renderer, &auraRect);
-		}
+		// Only render wizard's aura and particles if wizard is active
+		if (playerIndex == 0) {
+			// Render aura particles around player
+			int auraParticleCount = 32;
+			float auraRadius = (avatarW + avatarH) / 4.0f + 10.0f;
+			float auraTime = SDL_GetTicks() / 1000.0f;
+			// Center the aura around the player's waist (about 70% down the sprite)
+			float waistY = player.y + avatarH * 0.7f;
+			float centerX = player.x + avatarW / 2;
+			for (int i = 0; i < auraParticleCount; ++i) {
+				float angle = (2.0f * M_PI * i) / auraParticleCount + auraTime * 0.8f;
+				float px = centerX + std::cos(angle) * auraRadius;
+				float py = waistY + std::sin(angle) * auraRadius;
+				SDL_Rect auraRect = cameraTransform(px - 3, py - 3, 6, 6);
+				// Animate color for a magical effect
+				Uint8 r = 120 + 80 * std::sin(angle + auraTime);
+				Uint8 g = 120 + 80 * std::sin(angle + auraTime + 2.0f);
+				Uint8 b = 255;
+				SDL_SetRenderDrawColor(renderer, r, g, b, 180);
+				SDL_RenderFillRect(renderer, &auraRect);
+			}
 
-		// Render dust particles (purple, semi-transparent, fade out)
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-		for (const auto& d : dustParticles) {
-			float alpha = 200.0f * (d.life / 32.0f);
-			if (alpha < 0) alpha = 0;
-			if (alpha > 200) alpha = 200;
-			SDL_SetRenderDrawColor(renderer, 180, 0, 255, (Uint8)alpha);
-			SDL_Rect dustRect = cameraTransform(d.x - 12, d.y - 6, 24, 12);
-			// Draw as a large ellipse
-			int dw = 24, dh = 12;
-			for (int dy = -dh / 2; dy <= dh / 2; ++dy) {
-				for (int dx = -dw / 2; dx <= dw / 2; ++dx) {
-					if ((dx * dx) * (dh * dh) + (dy * dy) * (dw * dw) <= (dw * dw) * (dh * dh)) {
-						int px = dustRect.x + dw / 2 + dx;
-						int py = dustRect.y + dh / 2 + dy;
-						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
-							SDL_RenderDrawPoint(renderer, px, py);
+			// Render dust particles (purple, semi-transparent, fade out)
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+			for (const auto& d : dustParticles) {
+				float alpha = 200.0f * (d.life / 32.0f);
+				if (alpha < 0) alpha = 0;
+				if (alpha > 200) alpha = 200;
+				SDL_SetRenderDrawColor(renderer, 180, 0, 255, (Uint8)alpha);
+				SDL_Rect dustRect = cameraTransform(d.x - 12, d.y - 6, 24, 12);
+				// Draw as a large ellipse
+				int dw = 24, dh = 12;
+				for (int dy = -dh / 2; dy <= dh / 2; ++dy) {
+					for (int dx = -dw / 2; dx <= dw / 2; ++dx) {
+						if ((dx * dx) * (dh * dh) + (dy * dy) * (dw * dw) <= (dw * dw) * (dh * dh)) {
+							int px = dustRect.x + dw / 2 + dx;
+							int py = dustRect.y + dh / 2 + dy;
+							if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+								SDL_RenderDrawPoint(renderer, px, py);
+						}
 					}
 				}
 			}
 		}
 
-		// Render character shadow (ellipse)
+		// Render character shadow (ellipse) only for wizard
 		SDL_Rect destRect = cameraTransform(player.x, player.y, avatarW, avatarH);
-		int shadowW = avatarW * 0.7;
-		int shadowH = avatarH * 0.22;
-		int shadowX = player.x + (avatarW - shadowW) / 2;
-		int shadowY = player.y + avatarH - shadowH / 2;
-		SDL_Rect shadowRect = cameraTransform(shadowX, shadowY, shadowW, shadowH);
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 90); // semi-transparent black
-		for (int dy = -shadowH / 2; dy <= shadowH / 2; ++dy) {
-			for (int dx = -shadowW / 2; dx <= shadowW / 2; ++dx) {
-				if ((dx * dx) * (shadowH * shadowH) + (dy * dy) * (shadowW * shadowW) <= (shadowW * shadowW) * (shadowH * shadowH)) {
-					int px = shadowRect.x + shadowW / 2 + dx;
-					int py = shadowRect.y + shadowH / 2 + dy;
-					if (px >= 0 && px < windowW && py >= 0 && py < windowH)
-						SDL_RenderDrawPoint(renderer, px, py);
+		if (playerIndex == 0) {
+			int shadowW = avatarW * 0.7;
+			int shadowH = avatarH * 0.22;
+			int shadowX = player.x + (avatarW - shadowW) / 2;
+			int shadowY = player.y + avatarH - shadowH / 2;
+			SDL_Rect shadowRect = cameraTransform(shadowX, shadowY, shadowW, shadowH);
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 90); // semi-transparent black
+			for (int dy = -shadowH / 2; dy <= shadowH / 2; ++dy) {
+				for (int dx = -shadowW / 2; dx <= shadowW / 2; ++dx) {
+					if ((dx * dx) * (shadowH * shadowH) + (dy * dy) * (shadowW * shadowW) <= (shadowW * shadowW) * (shadowH * shadowH)) {
+						int px = shadowRect.x + shadowW / 2 + dx;
+						int py = shadowRect.y + shadowH / 2 + dy;
+						if (px >= 0 && px < windowW && py >= 0 && py < windowH)
+							SDL_RenderDrawPoint(renderer, px, py);
+					}
 				}
 			}
+			SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 		}
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 
 		// Render the active character
 		if (playerIndex == 1) {
-			// Knight: use custom knight renderer
+			// Knight: use custom knight renderer ONLY (no wizard sprite logic)
 			renderKnightWithScythe(renderer, player, fpsFont);
 		} else {
 			// Wizard: use default sprite logic
