@@ -367,8 +367,8 @@ int main(int argc, char* argv[]) {
 	// Use a vector of Character objects
 	std::vector<Character> characters;
 	characters.push_back(createNewCharacter("Wizard", windowW / 2.0f, windowH / 2.0f, {128, 0, 128}, {200, 180, 60}));
-	// Add a second character: Knight
-	characters.push_back(createNewCharacter("Knight", windowW / 2.0f + 200, windowH / 2.0f, {120, 120, 130}, {110, 70, 30}));
+	// Add a second character: Knight at the same position as the wizard
+	characters.push_back(createNewCharacter("Knight", windowW / 2.0f, windowH / 2.0f, {120, 120, 130}, {110, 70, 30}));
 	// For now, the first character is the player
 	int playerIndex = 0;
 
@@ -429,7 +429,12 @@ int main(int argc, char* argv[]) {
 						break;
 					// Switch to Knight (index 1)
 					case SDLK_2:
-						if (pressed && characters.size() > 1) playerIndex = 1;
+						if (pressed && characters.size() > 1) {
+							playerIndex = 1;
+							// Reset knight's velocity to prevent flying out of camera
+							characters[1].vx = 0;
+							characters[1].vy = 0;
+						}
 						break;
 					// Outfit color cycling
 					case SDLK_F1:
@@ -801,10 +806,67 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Render the active character
-		if (playerIndex == 1) {
-			// Knight: use custom knight renderer ONLY (no wizard sprite logic)
-			renderKnightWithScythe(renderer, player, fpsFont);
-		} else {
+		   // Render both wizard and knight using the wizard sprite logic, but modify knight's appearance
+		   if (playerIndex == 1) {
+			   // Knight: draw a full suit of silver armor, no robe or wizard hat, and put sword in hand
+			   // Draw main armor body (torso)
+			   SDL_SetRenderDrawColor(renderer, 180, 180, 200, 255);
+			   SDL_Rect torsoRect = { destRect.x + 30, destRect.y + 70, 60, 60 };
+			   SDL_RenderFillRect(renderer, &torsoRect);
+
+			   // Draw armored legs
+			   SDL_SetRenderDrawColor(renderer, 160, 160, 180, 255);
+			   SDL_Rect leftLeg = { destRect.x + 40, destRect.y + 130, 14, 28 };
+			   SDL_Rect rightLeg = { destRect.x + 66, destRect.y + 130, 14, 28 };
+			   SDL_RenderFillRect(renderer, &leftLeg);
+			   SDL_RenderFillRect(renderer, &rightLeg);
+
+			   // Draw armored boots
+			   SDL_SetRenderDrawColor(renderer, 100, 100, 120, 255);
+			   SDL_Rect leftBoot = { destRect.x + 40, destRect.y + 154, 14, 10 };
+			   SDL_Rect rightBoot = { destRect.x + 66, destRect.y + 154, 14, 10 };
+			   SDL_RenderFillRect(renderer, &leftBoot);
+			   SDL_RenderFillRect(renderer, &rightBoot);
+
+			   // Draw arms (armor)
+			   SDL_SetRenderDrawColor(renderer, 170, 170, 200, 255);
+			   SDL_Rect leftArm = { destRect.x + 18, destRect.y + 90, 16, 38 };
+			   SDL_Rect rightArm = { destRect.x + 86, destRect.y + 90, 16, 38 };
+			   SDL_RenderFillRect(renderer, &leftArm);
+			   SDL_RenderFillRect(renderer, &rightArm);
+
+			   // Draw hands (gauntlets)
+			   SDL_SetRenderDrawColor(renderer, 200, 200, 220, 255);
+			   SDL_Rect leftHand = { destRect.x + 18, destRect.y + 124, 16, 12 };
+			   SDL_Rect rightHand = { destRect.x + 86, destRect.y + 124, 16, 12 };
+			   SDL_RenderFillRect(renderer, &leftHand);
+			   SDL_RenderFillRect(renderer, &rightHand);
+
+			   // Draw helmet (covers head, no wizard hat)
+			   SDL_SetRenderDrawColor(renderer, 180, 180, 220, 255);
+			   SDL_Rect helmetRect = { destRect.x + 38, destRect.y + 30, 44, 36 };
+			   SDL_RenderFillRect(renderer, &helmetRect);
+			   // Visor (darker slit)
+			   SDL_SetRenderDrawColor(renderer, 60, 60, 80, 255);
+			   SDL_Rect visorRect = { destRect.x + 48, destRect.y + 48, 24, 8 };
+			   SDL_RenderFillRect(renderer, &visorRect);
+
+			   // Draw face (small slit below visor)
+			   SDL_SetRenderDrawColor(renderer, 220, 200, 160, 255);
+			   SDL_Rect faceRect = { destRect.x + 54, destRect.y + 56, 12, 8 };
+			   SDL_RenderFillRect(renderer, &faceRect);
+
+			   // Draw sword in right hand (held horizontally)
+			   int swordBaseX = destRect.x + 86 + 16; // right hand x + width
+			   int swordBaseY = destRect.y + 130;
+			   SDL_SetRenderDrawColor(renderer, 200, 200, 220, 255);
+			   SDL_Rect swordRect = { swordBaseX, swordBaseY, 38, 8 };
+			   SDL_RenderFillRect(renderer, &swordRect);
+			   // Sword hilt (brown)
+			   SDL_SetRenderDrawColor(renderer, 120, 80, 40, 255);
+			   SDL_Rect hiltRect = { swordBaseX - 10, swordBaseY + 2, 12, 4 };
+			   SDL_RenderFillRect(renderer, &hiltRect);
+		   } else {
 			// Wizard: use default sprite logic
 			if (facing == 2 && spriteBackTexture[walkFrame]) {
 				SDL_RenderCopy(renderer, spriteBackTexture[walkFrame], nullptr, &destRect);
