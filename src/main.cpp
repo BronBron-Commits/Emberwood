@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 	const int zoneWidth = 640;
 	int currentZone = 0;
 	int targetZone = 0;
-	const float cameraLerp = 0.15f; // Smoothness factor (0.0-1.0)
+	const float cameraLerp = 0.035f; // Much slower, lazier camera movement for a chill feel
 
 	// World size (bigger than window for scrolling)
 	const int worldW = 3000;
@@ -328,11 +328,15 @@ int main(int argc, char* argv[]) {
 		// Clamp targetCamX to world bounds
 		if (targetCamX < 0) targetCamX = 0;
 		if (targetCamX > worldW - windowW) targetCamX = worldW - windowW;
-		// Smoothly move camera towards target zone
+		float targetCamY = charY + avatarH / 2 - windowH / 2;
+		if (targetCamY < 0) targetCamY = 0;
+		if (targetCamY > worldH - windowH) targetCamY = worldH - windowH;
+		// Smoothly move camera towards target zone (both axes)
 		camXf += (targetCamX - camXf) * cameraLerp;
+		static float camYf = 0.0f;
+		camYf += (targetCamY - camYf) * cameraLerp;
 		camX = static_cast<int>(camXf + 0.5f);
-		// Camera Y is always 0 (no vertical scroll)
-		camY = 0;
+		camY = static_cast<int>(camYf + 0.5f);
 
 		SDL_SetRenderDrawColor(renderer, 30, 30, 40, 255);
 		SDL_RenderClear(renderer);
@@ -460,6 +464,71 @@ int main(int argc, char* argv[]) {
 			SDL_RendererFlip flip = (facing == 1) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 			SDL_RenderCopyEx(renderer, spriteSideTexture[walkFrame], nullptr, &destRect, 0, nullptr, flip);
 		}
+		// --- Mini Map Rendering ---
+		const int miniMapW = 240;
+		const int miniMapH = 160;
+		const int miniMapMargin = 24;
+		// Top-right corner
+		int miniMapX = windowW - miniMapW - miniMapMargin;
+		int miniMapY = miniMapMargin;
+		// Draw minimap background
+		SDL_Rect miniMapRect = { miniMapX, miniMapY, miniMapW, miniMapH };
+		SDL_SetRenderDrawColor(renderer, 20, 20, 30, 220);
+		SDL_RenderFillRect(renderer, &miniMapRect);
+		// Draw minimap border
+		SDL_SetRenderDrawColor(renderer, 200, 200, 255, 255);
+		SDL_RenderDrawRect(renderer, &miniMapRect);
+
+		// World-to-minimap scale
+		float scaleX = (float)miniMapW / worldW;
+		float scaleY = (float)miniMapH / worldH;
+
+
+		// Draw red zone rectangle for current camera zone on minimap, clamped to visible camera area
+		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+		// Camera Y is always 0, but if you add vertical scroll, use camY here
+		int camViewY = camY; // currently always 0
+		int camViewH = windowH; // visible window height in world coords
+		if (camViewH > worldH) camViewH = worldH;
+		int zoneMiniX = miniMapX + (int)(currentZone * zoneWidth * scaleX);
+		int zoneMiniY = miniMapY + (int)(camViewY * scaleY);
+		int zoneMiniW = (int)(zoneWidth * scaleX);
+		int zoneMiniH = (int)(camViewH * scaleY);
+		// Clamp to minimap bounds
+		if (zoneMiniY < miniMapY) zoneMiniY = miniMapY;
+		if (zoneMiniY + zoneMiniH > miniMapY + miniMapH) zoneMiniH = (miniMapY + miniMapH) - zoneMiniY;
+		for (int t = 0; t < 3; ++t) {
+			SDL_Rect thickRect = {zoneMiniX + t, zoneMiniY + t, zoneMiniW - 2 * t, zoneMiniH - 2 * t};
+			SDL_RenderDrawRect(renderer, &thickRect);
+		}
+
+		// Draw grid lines on minimap
+		SDL_SetRenderDrawColor(renderer, 80, 80, 120, 180);
+		for (int gx = 0; gx <= worldW; gx += 128) {
+			int x = miniMapX + (int)(gx * scaleX);
+			SDL_RenderDrawLine(renderer, x, miniMapY, x, miniMapY + miniMapH);
+		}
+		for (int gy = 0; gy <= worldH; gy += 128) {
+			int y = miniMapY + (int)(gy * scaleY);
+			SDL_RenderDrawLine(renderer, miniMapX, y, miniMapX + miniMapW, y);
+		}
+
+		// Draw player position on minimap
+		int playerMiniX = miniMapX + (int)((charX + avatarW / 2) * scaleX);
+		int playerMiniY = miniMapY + (int)((charY + avatarH / 2) * scaleY);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+		SDL_Rect playerDot = { playerMiniX - 3, playerMiniY - 3, 7, 7 };
+		SDL_RenderFillRect(renderer, &playerDot);
+
+		// Optionally: draw fireballs on minimap
+		SDL_SetRenderDrawColor(renderer, 180, 0, 255, 200);
+		for (const auto& f : fireballs) {
+			int fx = miniMapX + (int)(f.x * scaleX);
+			int fy = miniMapY + (int)(f.y * scaleY);
+			SDL_Rect fbDot = { fx - 2, fy - 2, 4, 4 };
+			SDL_RenderFillRect(renderer, &fbDot);
+		}
+
 		SDL_RenderPresent(renderer);
 	}
 	for (int i = 0; i < 2; ++i) {
